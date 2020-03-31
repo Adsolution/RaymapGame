@@ -1,0 +1,19 @@
+﻿//================================
+//  By: Author
+//================================
+~~namespace RaymapGame.Rayman2.Persos {
+    /// <summary>
+    /// Description
+    /// </summary>
+    public partial class NewScript : PersoController {
+        public override AnimSFX[] animSfx => new AnimSFX[] {
+			
+		};
+
+		public static class Anim {
+			public const int
+				StateName1 = 0,
+				StateName2 = 1; //...etc
+		}
+    }
+}
