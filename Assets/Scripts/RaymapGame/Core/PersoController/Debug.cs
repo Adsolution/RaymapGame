@@ -29,9 +29,9 @@ namespace RaymapGame {
         protected void OnGUI() {
             if (!(Main.showMainActorDebug && Main.mainActor == this)) return;
             offY = 0;
-            debugRect = new Rect(8, 8, 225, 25);
-            debugStyle.fontSize = 18;
-            debugStyle.normal.textColor = Color.red;
+            debugRect = new Rect(8, 8, 200, 23);
+            debugStyle.fontSize = 17;
+            debugStyle.normal.textColor = Color.yellow * 0.93f;
             var p = Main.mainActor;
 
             DebugLabel("Pos", p.pos);
@@ -58,6 +58,15 @@ namespace RaymapGame {
             DebugLabel("Ground", p.col.ground.Any);
             DebugLabel("Wall", p.col.wall.Any);
             DebugLabel("Hit Points", $"{hitPoints} / {maxHitPoints}");
+
+            DebugNewColumn();
+            if (stdCam != null) {
+                DebugLabel("Cam Dist", stdCam.oDist.ToString("0.0"));
+                DebugLabel("Cam Orbit", new Vector2(stdCam.oAngleX, stdCam.oAngleY));
+                DebugLabel("Cam Rule", stdCam.rule);
+                if (Rayman2.Persos.GenCamera.curr != null)
+                    DebugLabel("GenCamera", Rayman2.Persos.GenCamera.curr.persoName);
+            }
 
             // Custom subtype debug info
             if (GetType() != typeof(PersoController)) {

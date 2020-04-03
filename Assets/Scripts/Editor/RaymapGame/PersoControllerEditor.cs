@@ -42,8 +42,8 @@ namespace RaymapGame {
 
         public override void OnInspectorGUI() {
             perso.transform.hideFlags = HideFlags.HideInInspector;
-            perso.GetComponent<SuperObjectComponent>().hideFlags = HideFlags.HideInInspector;
-            perso.GetComponent<CustomBitsComponent>().hideFlags = HideFlags.HideInInspector;
+            var soc = perso.GetComponent<SuperObjectComponent>(); if (soc != null) soc.hideFlags = HideFlags.HideInInspector;
+            var cbc = perso.GetComponent<CustomBitsComponent>(); if (cbc != null) cbc.hideFlags = HideFlags.HideInInspector;
             perso.GetComponent<MindComponent>().hideFlags = HideFlags.HideInInspector;
             perso.GetComponent<Moddable>().hideFlags = HideFlags.HideInInspector;
             var dmc = perso.GetComponent<DynamicsMechanicsComponent>(); if (dmc != null) dmc.hideFlags = HideFlags.HideInInspector;
@@ -122,7 +122,7 @@ namespace RaymapGame {
             if (perso._timers.Count != 0) {
                 Header("Active Timers");
                 foreach (var t in perso._timers) {
-                    Field(t.Key, t.Value.active);
+                    Field(t.Key, t.Value.active ? t.Value.remaining.ToString("00.0") : "00.0");
                 }
             }
         }

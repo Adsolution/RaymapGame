@@ -16,7 +16,7 @@ namespace RaymapGame.Rayman2.Persos {
         public void PirateShoot() {
             if (Timers("Shoot").active) return;
 
-            Shoot(typeof(SUN_basic), 20, rayman.center);
+            Shoot(typeof(Alw_Projectile_Rayman_Model), 20, rayman.center);
             anim.Set(0);
             anim.Set(Anim.Shoot);
             Timers("ShootAnim").Start(0.3f, () => anim.Set(Anim.Aim));

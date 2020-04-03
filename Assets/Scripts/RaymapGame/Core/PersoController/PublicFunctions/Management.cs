@@ -29,7 +29,7 @@ namespace RaymapGame {
             rot = startRot;
             scale3 = startScale;
             vel = Vector3.zero;
-            hitPoints = starthitPoints;
+            hitPoints = startHitPoints;
             SetVisibility(true);
             SetRule("");
             OnStart();
@@ -55,7 +55,7 @@ namespace RaymapGame {
 
         public MethodBase SetRule(string rule, params object[] ruleParams) {
             if (rules.ContainsKey(rule)) {
-                if (this.rule != rule) {
+                if (this.rule != rule || this.ruleParams != ruleParams) {
                     prevRule = this.rule;
                     this.rule = rule;
                     this.ruleParams = ruleParams;

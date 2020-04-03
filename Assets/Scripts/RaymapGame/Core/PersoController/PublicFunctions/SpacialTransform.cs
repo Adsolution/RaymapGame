@@ -105,10 +105,10 @@ namespace RaymapGame {
             => LookAt(pos + dir, t);
         public void FaceDir2D(Vector3 dir, float t = -1)
             => LookAt2D(pos + dir, t);
-        public void FaceVel3D(float t = -1)
-            => LookAt(pos + apprVel, t);
-        public void FaceVel2D(float t = -1)
-            => LookAt2D(pos + apprVel, t);
+        public void FaceVel3D(bool apparentVel, float t = -1)
+            => LookAt(pos + (apparentVel ? apprVel : vel), t);
+        public void FaceVel2D(bool apparentVel, float t = -1)
+            => LookAt2D(pos + (apparentVel ? apprVel : vel), t);
         public void AlignY(float t = -1)
             => rot = Quaternion.Slerp(rot, Quaternion.Euler(0, rot.eulerAngles.y, 0), tCheck(t));
         public void Orbit(Target target, float dist, float angleY, float angleX, float t_v = -1, float t_h = -1) {
@@ -142,14 +142,5 @@ namespace RaymapGame {
 
         public static float defaultDist = 8.5f, defaultAngleX = 15, defaultOrbitSpeed = 0.135f;
         protected float xLook, orbSpd, orbVel = defaultOrbitSpeed;
-
-
-        public PersoController HoldPerso(PersoController persoToHold)
-            => CarryPerso(persoToHold, handChannel);
-        public PersoController CarryPerso(PersoController persoToHold, int handChannel) {
-            carryPerso = persoToHold;
-            this.handChannel = handChannel;
-            return persoToHold;
-        }
     }
 }

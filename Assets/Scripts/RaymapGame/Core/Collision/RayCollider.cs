@@ -138,13 +138,16 @@ namespace RaymapGame
                     platPosPrev = ground.hit.collider.transform.position;
                     platRotPrev = ground.hit.collider.transform.rotation;
                 }
-                pos += platformPerso.deltaPos;
+                if (true) {
+                    pos += platformPerso.deltaPos;
+                }
+                else {
+                    pos += ground.hit.collider.transform.position - platPosPrev;
+                }
                 perso.rot *= platformPerso.deltaRot;
-                pos -= /*(ground.hit.collider.transform.position - platPosPrev)
-                    + */(Matrix4x4.Rotate(
-                        Quaternion.Inverse(platRotPrev) * ground.hit.collider.transform.rotation)
-                    .MultiplyPoint3x4(platformPerso.pos - pos)
-                    - (platformPerso.pos - pos));
+                pos -= (Matrix4x4.Rotate(Quaternion.Inverse(platRotPrev) * ground.hit.collider.transform.rotation)
+                    .MultiplyPoint3x4(ground.hit.collider.transform.position - pos)
+                    - (ground.hit.collider.transform.position - pos));
 
                 platPosPrev = ground.hit.collider.transform.position;
                 platRotPrev = ground.hit.collider.transform.rotation;

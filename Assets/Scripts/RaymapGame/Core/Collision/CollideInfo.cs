@@ -8,23 +8,26 @@ using OpenSpace.Collide;
 namespace RaymapGame {
 
     public struct CollideInfo {
-        public GeometricObjectElementCollideTriangles collide;
+        IGeometricObjectElementCollide collide;
         public RaycastHit hit;
         public PersoController hitPerso;
 
-        public CollideMaterial mat => collide?.gameMaterial?.collideMaterial;
+        public CollideComponent comp;
+        public OpenSpace.GameMaterial gmat => collide?.GetMaterial(comp.index);
+        public CollideMaterial mat => gmat?.collideMaterial;
+
+
         public bool isValid;
-        public CollideType collideType => collide.geo.type;
         public CollideMaterial.CollisionFlags_R2 type {
             get => (CollideMaterial.CollisionFlags_R2)mat?.type;
             set { mat.type = (ushort)type; }
         }
         
         public CollideInfo(RaycastHit hit) { 
-            var c = hit.collider?.GetComponent<CollideComponent>();
-            if (c != null && hit.normal != Vector3.zero) {
+            comp = hit.collider?.GetComponent<CollideComponent>();
+            if (comp != null && hit.normal != Vector3.zero) {
                 isValid = true;
-                collide = c.collide;
+                collide = comp.collide;
                 this.hit = hit;
             }
             else if (Main.anyCollision && hit.normal != Vector3.zero) {
@@ -39,18 +42,12 @@ namespace RaymapGame {
             }
             hitPerso = hit.collider?.GetComponentInParent<PersoController>();
         }
-        public CollideInfo(RaycastHit hit, GeometricObjectElementCollideTriangles collide) {
-            isValid = true;
-            this.hit = hit;
-            this.collide = collide;
-            hitPerso = hit.collider?.GetComponentInParent<PersoController>();
-        }
 
 
-        bool Checks => Main.anyCollision || (isValid && collide?.gameMaterial?.collideMaterial != null);
+        bool Checks => Main.anyCollision || (isValid && mat != null);
         public bool None => !isValid;
         public bool Any => isValid;
-        public bool Generic => isValid && collide?.gameMaterial?.collideMaterial == null;
+        public bool Generic => isValid && mat == null;
         public bool AnyGround => Generic || GrabbableLedge || Trampoline || ClimbableWall;
         public bool AnyWall => Generic || GrabbableLedge || Slide || Trampoline || Wall || ClimbableWall || HangableCeiling;
 

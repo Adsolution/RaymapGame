@@ -163,7 +163,7 @@ namespace RaymapGame {
         }
 
         void LogicLoop() {
-            if (active) {
+            if (active && updateCollision) {
                 col.UpdateGroundCollision();
                 col.UpdateWaterCollision();
             } else col.ClearAll();
@@ -211,9 +211,10 @@ namespace RaymapGame {
                     }
                 }
 
-
-                col.UpdateWallCollision();
-                col.ApplyWallCollision();
+                if (updateCollision) {
+                    col.UpdateWallCollision();
+                    col.ApplyWallCollision();
+                }
 
                 if (scale <= 0) scale = 0.0001f;
                 transform.localScale = scale3;

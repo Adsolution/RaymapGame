@@ -16,7 +16,12 @@ namespace RaymapGame.Rayman2.Persos {
 		public static class Anim {
             public const int
                 Pillar = 10,
-                LavaFall = 25;
-		}
+                LavaFall = 25,
+                BreakableWallNormal = 19,
+                BreakableWallDamage1 = 18,
+                BreakableWallDamage2 = 16,
+                BreakableWallBreak = 21;
+
+        }
     }
 }

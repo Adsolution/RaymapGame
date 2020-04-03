@@ -30,12 +30,12 @@ public static class ResManager
     public static GameObject Inst(string path)
         => Object.Instantiate(Get<GameObject>(path));
     public static GameObject Inst(string path, Component parent)
-        => Object.Instantiate(Get<GameObject>(path), parent.transform, false);
+        => Object.Instantiate(Get<GameObject>(path), parent?.transform, false);
 
     public static T Inst<T>(string path)
         => Object.Instantiate(Get<GameObject>(path)).GetComponent<T>();
     public static T Inst<T>(string path, Component parent)
-        => Object.Instantiate(Get<GameObject>(path), parent.transform, false).GetComponent<T>();
+        => Object.Instantiate(Get<GameObject>(path), parent?.transform, false).GetComponent<T>();
 
 
     public static GameObject[] InstAll(string path) {
@@ -47,7 +47,7 @@ public static class ResManager
     public static GameObject[] InstAll(string path, Component parent) {
         var all = GetAll<GameObject>(path);
         foreach (var o in all)
-            Object.Instantiate(o, parent.transform, false);
+            Object.Instantiate(o, parent?.transform, false);
         return all;
     }
 

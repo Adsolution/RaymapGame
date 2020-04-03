@@ -9,29 +9,38 @@ namespace RaymapGame.Rayman2.Persos {
     /// </summary>
     public class MIC_Obus_Complexe : obus {
         bool inAlertRadius => DistTo(rayman) < 25;
-        Timer t_fallAsleep = new Timer();
+
+        protected override void OnDeath() {
+            CreateExplosion(pos);
+            CamShake3D(1, 0.6f);
+            SetNullPos();
+            Timers("Respawn").Start(1, Restart);
+        }
 
         public void WakeUp() {
-            if (!newRule) return;
-
-            SetRule("");
-            t_fallAsleep.Abort();
+            Timers("FallAsleep").Abort();
             anim.Set(Anim.WakeUp);
-            t_wakeUp.Start(1.75f, () => SetRule("Run"));
+            Timers("WakeUp").Start(1.6f, () => SetRule("Run"));
+            SetRule("");
         }
 
         protected override void OnStart() {
             if (deathLinks.Count != 0) {
                 SetNullPos(); return;
             }
+            SetHealth(10);
             SetShadow(true);
             col.wallEnabled = true;
             SetRule("Idle");
         }
 
+        protected override void OnUpdate() {
+            ReceiveProjectiles();
+        }
+
         void Rule_Idle() {
             if (newRule) {
-                t_fallAsleep.Start(8, () => SetRule("Sleep"));
+                Timers("FallAsleep").Start(8, () => SetRule("Sleep"));
             }
             anim.Set(Anim.Idle);
             if (inAlertRadius) WakeUp();
@@ -42,16 +51,13 @@ namespace RaymapGame.Rayman2.Persos {
             if (inAlertRadius) WakeUp();
         }
 
-        Timer t_wakeUp = new Timer();
-        Timer t_runStart = new Timer();
-
         void Rule_Run() {
             if (newRule) {
                 anim.Set(Anim.RunStart, 0);
-                t_runStart.Start(0.3f);
+                Timers("RunStart").Start(0.3f);
             }
 
-            if (t_runStart.finished) {
+            if (Timers("RunStart").finished) {
                 anim.SetSpeed(moveSpeed * 8);
                 moveSpeed = 8;
                 navRotSpeed = 3;
@@ -61,7 +67,7 @@ namespace RaymapGame.Rayman2.Persos {
                     velY = 0;
                     SetFriction(15, 1);
 
-                    if (GetDsgVar<WaypointGraph>("Graph_11") == null) {
+                    if (true || GetDsgVar<WaypointGraph>("Graph_11") == null) {
                         LookAt2D(rayman.pos, navRotSpeed);
                         NavForwards();
                     }
@@ -74,20 +80,15 @@ namespace RaymapGame.Rayman2.Persos {
                     ApplyGravity();
                 }
 
-                var h = Raycast(Vector3.up * 0.5f, forward, 1);
-                if (h.Any) {
-                    Bounce3D(h.hit.normal, 1.2f);
-                    FaceVel3D(30);
+                if (col.wall.AnyWall) {
+                    Damage(vel.magnitude * Vector3.Angle(vel, col.wall.hit.normal) / 720);
+                    vel += col.wall.hit.normal * 15;
+                    FaceVel3D(false, 60);
                 }
             }
 
             if (CheckCollisionZone(rayman, OpenSpace.Collide.CollideType.ZDM)) {
-                //Reset();
-                //rayman.Despawn();
-            }
-            if (CheckCollisionZone(GetPerso<Alw_Projectile_Rayman_Model>(), OpenSpace.Collide.CollideType.ZDM)) {
-                Restart();
-                //rayman.Despawn();
+                Kill();
             }
         }
     }

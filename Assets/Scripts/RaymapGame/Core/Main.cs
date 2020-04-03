@@ -9,6 +9,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using OpenSpace;
+using OpenSpace.Collide;
 using RaymapGame.EditorUI;
 
 namespace RaymapGame
@@ -112,9 +113,11 @@ namespace RaymapGame
                     if (r.name.Contains("Hierarchy Root")) root = r;
 
             if (root != null)
-                foreach (var col in root.GetComponentsInChildren<Collider>())
-                    if (col.GetComponent<CollideComponent>() == null)
+                foreach (var col in root.GetComponentsInChildren<Collider>()) {
+                    var comp = col.GetComponent<CollideComponent>();
+                    if (comp == null || (comp.type != CollideType.None && comp.type != CollideType.ZDR))
                         Destroy(col);
+                }
 
             // Find Waypoint graphs
             if (controller.graphManager.transform.childCount > 0)

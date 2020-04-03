@@ -24,7 +24,7 @@ namespace RaymapGame.Rayman2.Persos {
             col.wallEnabled = false;
             Orbit(targ.center, dist_s, Quaternion.Lerp(
                     Quaternion.Euler(0, oAngleY, 0), Quaternion.Euler(0, yRot, 0),
-                    dt * 1f).eulerAngles.y, xRot + 5, 1, 6);
+                    dt * 1.5f).eulerAngles.y, xRot + 5, 1, 6);
 
             LookAtX(targ.center, 0, 6);
             LookAtY(targ.center, 0, 10);

@@ -10,12 +10,18 @@ namespace RaymapGame.Rayman2.Persos {
     /// Collectible Lums base
     /// </summary>
     public partial class Alw_Lums_Model : Lums {
+        PersoController collector => rayman;
+        public override bool updateCollision => false;
         public override bool resetOnRayDeath => false;
+
         public LumType type = LumType.NotSet;
         public float attractRadius = -1;
+
         public virtual void OnCollect(PersoController collector) { }
 
         public void CollectBy(PersoController collector) {
+            SpawnParticle(collector, "LumCollect", type);
+            SetNullPos();
             switch (type) {
                 case LumType.Red: collector.Heal(20); break;
                 case LumType.Green:
@@ -43,17 +49,15 @@ namespace RaymapGame.Rayman2.Persos {
                 case LumType.Green: anim.Set(Anim.Green); break;
             }
 
+            SpawnParticle(true, "LumTrail", type);
             SetShadow(true);
             SetRule("WaitCollect");
         }
 
         protected override void OnUpdate() {
-            if (DistTo(mainActor) < 2) {
-                vel = Vector3.zero;
-                pos = new Vector3(0, -10000, 0);
+            if (DistTo(collector) < 2) {
                 SetRule("");
-                CollectBy(mainActor);
-                OnCollect(mainActor);
+                CollectBy(collector);
             }
         }
 
@@ -67,25 +71,24 @@ namespace RaymapGame.Rayman2.Persos {
             vel += Random.onUnitSphere * 7 * dt;
             NavTowards(startPos, false);
 
-            if (attractRadius > 0 && DistTo(mainActor.center) < attractRadius)
+            if (attractRadius > 0 && DistTo(collector.center) < attractRadius)
                 SetRule("Attracted");
         }
 
-        Timer t_speedup = new Timer();
         float speedup = 1;
         protected void Rule_Attracted() {
             if (newRule) {
                 SetFriction(6, 6);
 
-                t_speedup.Start(1.5f, () => {
+                Timers("Speedup").Start(1.5f, () => {
                     speedup = 4;
                     SetFriction(9, 9);
                 });
             }
 
             vel += Random.onUnitSphere * moveSpeed * 7 * dt * 2 / speedup;
-            moveSpeed = speedup * 6 * Mathf.Clamp(DistTo(mainActor), 2, 100);
-            NavTowards(mainActor.center, false);
+            moveSpeed = speedup * 6 * Mathf.Clamp(DistTo(collector), 2, 100);
+            NavTowards(collector.center, false);
         }
     }
 }

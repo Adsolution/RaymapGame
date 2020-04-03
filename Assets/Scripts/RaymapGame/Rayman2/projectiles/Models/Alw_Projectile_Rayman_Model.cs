@@ -20,8 +20,22 @@ namespace RaymapGame.Rayman2.Persos {
 
             var r = Raycast(vel, 1);
             if (r.Any && !t_bounce.active) {
-                if (++bounces < 3)
-                    FindHoming(r.hit.normal);
+                if (++bounces < 3) {
+
+                    if (r.hitPerso != null) {
+                        r.hitPerso.Damage(damage);
+                        Remove();
+                        return;
+                    }
+
+                    Bounce3D(r.hit.normal);
+                    FaceVel2D(false);
+
+                    // Optional find homing target
+                    var t = FindTarget(20, 45);
+                    if (t != null)
+                        vel = (t.pos - pos).normalized * vel.magnitude;
+                }
                 else
                     Remove();
             }
@@ -29,26 +43,6 @@ namespace RaymapGame.Rayman2.Persos {
             if (DistTo(rayman) > 40) {
                 SetRule("Fizzle");
             }
-        }
-
-        void FindHoming(Vector3 newDir) {
-            float close = 15;
-            PersoController closest = null;
-            foreach (var p in FindObjectsOfType<PersoController>()) {
-                float dist = rayman.DistTo(p.pos);
-                if (!p.isMainActor
-                    //&& p.perso.perso.stdGame.ConsideredOnScreen()
-                    && p.HasCollisionType(OpenSpace.Collide.CollideType.ZDE)
-                    && (dist < close)) {
-                    close = dist;
-                    closest = p;
-                }
-            }
-            if (closest != null)
-                vel = (closest.pos - pos).normalized * vel.magnitude;
-            Bounce3D(newDir);
-            pos += vel.normalized * radius / 2;
-            t_bounce.Start(0.03f);
         }
 
         protected void Rule_Fizzle() {

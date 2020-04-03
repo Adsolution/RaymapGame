@@ -530,7 +530,7 @@ namespace RaymapGame.Rayman2.Persos {
                 return;
             }
 
-            FaceVel3D();
+            FaceVel3D(true);
         }
 
 

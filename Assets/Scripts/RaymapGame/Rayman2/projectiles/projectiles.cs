@@ -13,7 +13,7 @@ namespace RaymapGame.Rayman2.Persos {
         public float damage = 10;
 
         protected override void OnStart() {
-            radius = GetCollisionSphere(OpenSpace.Collide.CollideType.ZDM).radius;
+            radius = 1;//GetCollisionSphere(OpenSpace.Collide.CollideType.ZDM).radius;
             SetFriction(0, 0);
         }
     }

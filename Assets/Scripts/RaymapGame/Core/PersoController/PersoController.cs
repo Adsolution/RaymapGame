@@ -63,7 +63,7 @@ namespace RaymapGame {
         public static float globalFricMult = 1;
         public float waypointLenience;
 
-        public float hitPoints = 1, maxHitPoints = 1, starthitPoints = 1;
+        public float hitPoints = 1, maxHitPoints = 1, startHitPoints = 1;
         public Rayman2.Persos.CHR_CheckP checkpoint;
 
         public int handChannel;
@@ -88,6 +88,7 @@ namespace RaymapGame {
         public virtual bool resetOnRayDeath => true;
         public virtual bool hasLinkedDeath => false;
         public virtual bool carriable => false;
+        public virtual bool updateCollision => true;
 
         protected virtual void OnDebug() { }
         protected virtual void OnStart() { }

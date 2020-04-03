@@ -9,6 +9,7 @@ namespace RaymapGame.Rayman2.Persos {
     /// Fireball
     /// </summary>
     public partial class Alw_Feu_model : boule_feu {
+        public override bool updateCollision => false;
         protected override void OnStart() {
             radius = GetCollisionSphere(OpenSpace.Collide.CollideType.ZDM).radius;
         }

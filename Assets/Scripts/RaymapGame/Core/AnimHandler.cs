@@ -38,6 +38,8 @@ namespace RaymapGame {
             else return persoRom.state.Index == anim;
         }
 
+        public bool autoNext { get => perso.autoNextState; set { perso.autoNextState = value; } }
+
         public void Set(int anim) => Set(anim, currPriority, -1, AnimFlags.None, false);
         public void Set(int anim, bool reset) => Set(anim, currPriority, -1, AnimFlags.None, reset);
         public void Set(int anim, float priority) => Set(anim, priority, -1, AnimFlags.None, false);
@@ -58,7 +60,6 @@ namespace RaymapGame {
 
                 if (!prioCache.ContainsKey(anim))
                     prioCache.Add(anim, priority);
-                perso.autoNextState = true;
 
                 var fr = perso.currentFrame;
                 perso.SetState(anim);
@@ -102,6 +103,7 @@ namespace RaymapGame {
         void Awake() {
             if (!Main.isRom) perso = gameObject.GetComponent<PersoBehaviour>();
             else persoRom = gameObject.GetComponent<ROMPersoBehaviour>();
+            autoNext = true;
         }
 
 

@@ -11,6 +11,10 @@ namespace RaymapGame {
         //  Health & Combat
         //========================================
         public bool dead => hitPoints == 0;
+        public void SetHealth(float max, bool healFull = true) {
+            startHitPoints = maxHitPoints = max;
+            if (healFull) HealFull();
+        }
         public void HealFull()
             => hitPoints = maxHitPoints;
         public void Heal(float points) {
@@ -105,7 +109,19 @@ namespace RaymapGame {
 
 
 
-        // Throwing
+
+
+        // Carrying / Throwing
+
+        public PersoController HoldPerso(PersoController persoToHold)
+            => CarryPerso(persoToHold, handChannel);
+        public PersoController CarryPerso(PersoController persoToHold, int handChannel) {
+            carryPerso = persoToHold;
+            this.handChannel = handChannel;
+            if (carryPerso != null)
+                carryPerso.vel = Vector3.zero;
+            return persoToHold;
+        }
 
         Vector3 thrStart, thrTarg;
         public void ThrowCarriedFoward(Target target = null) {

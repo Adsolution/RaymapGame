@@ -36,22 +36,20 @@ namespace RaymapGame.Rayman2.Persos {
         protected override void OnDebug() {
             DebugLabel("Helic Active", helic);
             DebugLabel("Has Super Helic", hasSuperHelic);
-            if (GetPerso<StdCam>() != null) {
-                DebugLabel("Cam rule", GetPerso<StdCam>().rule);
-                if (GenCamera.curr != null)
-                    DebugLabel("GenCamera", GenCamera.curr.persoName);
-            }
         }
 
         public override float activeRadius => 100000;
 
         protected override void OnStart() {
+            // Set world physics centre to Rayman's start pos, as level origins are all over the place
+            // For particle collisions mostly
+            Physics.RebuildBroadphaseRegions(new Bounds(startPos, Vector3.one * 250), 8);
+
             maxHitPoints = 100;
             hitPoints = 50;
             waypointLenience = 3;
             navRotSpeed = 10;
 
-            //projectileType = typeof(Alw_Projectile_Rayman_Model);
             SetShadow(true);
             SetRule("Air");
         }

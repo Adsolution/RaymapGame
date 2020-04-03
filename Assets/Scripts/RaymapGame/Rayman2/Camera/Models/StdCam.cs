@@ -2,6 +2,8 @@
 //  By: Adsolution
 //================================
 using UnityEngine;
+using OpenSpace.Collide;
+using System.Linq;
 using static RaymapGame.InputEx;
 
 namespace RaymapGame.Rayman2.Persos {
@@ -52,6 +54,26 @@ namespace RaymapGame.Rayman2.Persos {
 
             cam.transform.position = pos;
             cam.transform.LookAt(pos + forward, Vector3.up);
+
+
+
+            GenCamera.curr = (GenCamera)mainActor.GetClosestPerso(typeof(GenCamera),
+                (x) => x.CheckCollisionZone(mainActor, CollideType.ZDD));
+            
+            if (GenCamera.curr == null)
+                SetRule("Follow");
+
+            else if (GenCamera.curr is SUN_Cam_Oriente o)
+                SetRule("Oriente", o.rotY, o.rotX, o.dist, o.xAddDeg);
+
+            else if (GenCamera.curr is SUN_PosCam_Cut c)
+                SetRule("PosCam", c.pos, -1);
+
+            else if (GenCamera.curr is SUN_PosCam_Smooth s)
+                SetRule("PosCam", s.pos, s.speed);
+
+            else if (GenCamera.curr is SUN_Cam_AxeForce a)
+                SetRule("AxeForce", a.pos, 8);
         }
 
         Vector3 cen;
@@ -81,7 +103,7 @@ namespace RaymapGame.Rayman2.Persos {
                 orbVel = Mathf.Lerp(orbVel, Mathf.Clamp(-lStickAngle * new Vector3(targ.apprVel.x, 0, targ.apprVel.z).magnitude
                     * orbSpd, -120, 120), 15 * dt);
             }
-            else orbVel = Mathf.Lerp(orbVel, 0, 20 * dt);
+            else orbVel = Mathf.Lerp(orbVel, 0, 40 * dt);
             oAngleY += orbVel * dt;
 
 
