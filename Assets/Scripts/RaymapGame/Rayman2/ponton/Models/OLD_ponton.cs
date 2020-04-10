@@ -24,9 +24,9 @@ namespace RaymapGame.Rayman2.Persos {
                 Timers("Fall").Start(4, () => SetRule("Fall"));
 
             for (int c = 0; c < 3; c++) {
-                channels[c].rot = Quaternion.Slerp(channels[c].rot, channels[c].startRot * (Quaternion.Euler((c % 2 == 0 ? 1 : -1) *
+                channels[c].rot = Vector3.Lerp(channels[c].rot, channels[c].startRot + (c % 2 == 0 ? 1 : -1) *
                     new Vector3(Random.value * 20 * Mathf.Sin(rvel += dt * 10 * Random.value), 0, 0)
-                + startRot.eulerAngles)), dt * 30);
+                + startRot, dt * 30);
             }
         }
 
@@ -42,7 +42,7 @@ namespace RaymapGame.Rayman2.Persos {
                 if (Timers($"ChFall{c}").finished) {
                     chVel[c] += -20 * dt;
                     channels[c].pos.y += chVel[c] * dt;
-                    channels[c].rot *= Quaternion.Euler(chRotVel[c] * dt);
+                    channels[c].rot += chRotVel[c] * dt;
                 }
         }
     }

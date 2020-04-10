@@ -9,11 +9,9 @@ namespace RaymapGame.Rayman2.Persos {
     /// Sinking pillar platform
     /// </summary>
     public partial class SUN_PLF_Pilier : matos_terre {
-
-        Timer t_sinkWait = new Timer();
-        Vector3 rndRot;
+        Vector3 sinkRot;
         protected override void OnStart() {
-            rndRot = Random.rotation.eulerAngles / 60;
+            sinkRot = rndRot / 60;
             gravity = -1.6f;
             SetFriction(1, 0.05f);
             SetRule("Wait");
@@ -21,14 +19,14 @@ namespace RaymapGame.Rayman2.Persos {
 
         protected void Rule_Wait() {
 			if (StoodOnBy(rayman)) {
-                t_sinkWait.Start(0.5f);
+                Timers("Sink Wait").Start(0.5f);
                 SetRule("Sinking");
             }
         }
         protected void Rule_Sinking() {
-            if (t_sinkWait.active) return;
+            if (Timers("Sink Wait").active) return;
             ApplyGravity();
-            rot.eulerAngles += rndRot * dt * Mathf.Clamp01(-velY);
+            rot += sinkRot * dt * Mathf.Clamp01(-velY);
             if (pos.y < startPos.y - 10)
                 SetRule("");
         }

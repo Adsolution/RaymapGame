@@ -7,18 +7,15 @@ namespace RaymapGame.Rayman2.Persos {
     /// Rolling Barrel Dispenser
     /// </summary>
     public partial class ARG_Gen_Tono_Roule : Cage {
-        public override float activeRadius => 40;
+        public override float activeRadius => 50;
         public float spawnDelay = 10;
         public float tonMoveSpeed = 1;
 
         public void DumpBarrel() {
+            DumpBarrelAnim();
             var ton = Clone<ARG_Tonneau_DonkeyKong>(pos + forward - upward);
             ton.moveSpeed = tonMoveSpeed;
             ton.SetRule("Rolling");
-
-            anim.Set(0);
-            anim.Set(Anim.BarrelDispenserFlap);
-            Timers("FlapStop").Start(2, () => anim.Set(Anim.BarrelDispenserIdle));
         }
 
         protected override void OnStart() {

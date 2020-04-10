@@ -33,7 +33,7 @@ namespace RaymapGame.Rayman2.Persos {
                 Timers("Stun").Start(2, () => SetRule("FreeFlow"));
             }
 
-            rot = Quaternion.Slerp(rot, rot * Random.rotation, dt / (1 + Timers("Stun").elapsed));
+            ShakeRot(1f / (1 + Timers("Stun").elapsed));
             AlignY(5);
         }
 

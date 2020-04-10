@@ -13,6 +13,8 @@ namespace RaymapGame.Rayman2.Persos {
 			new AnimSFX(Anim.Rolling, new SFXPlayer.Info { 
                 path = "Rayman2/TONROUL",
                 polyphony = SFXPlayer.Polyphony.Loop,
+                space = SFXPlayer.Space.Point,
+                pointMinRadius = 6,
                 pointMaxRadius = 20,
             })
 		};

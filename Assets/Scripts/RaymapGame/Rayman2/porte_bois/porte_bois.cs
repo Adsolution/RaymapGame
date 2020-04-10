@@ -19,6 +19,7 @@ namespace RaymapGame.Rayman2.Persos {
 
         protected void Rule_Broken() {
             if (newRule) {
+                SFX("Rayman2/doorbreak").Play();
                 velY = 10;
                 velXZ = -forward * 20;
                 rotVel = Random.rotationUniform.eulerAngles * 3;

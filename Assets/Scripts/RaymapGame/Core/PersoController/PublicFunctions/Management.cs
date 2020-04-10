@@ -4,8 +4,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using OpenSpace.Collide;
-using static RaymapGame.InputEx;
+using System.Diagnostics;
 using System.Reflection;
 using System.Linq;
 
@@ -20,6 +19,14 @@ namespace RaymapGame {
         public bool active => persoEnabled && (!(t_disable.active || (outOfSector && outOfActiveRadius && !isAlways)));
         public static Rayman2.Persos.YLT_RaymanModel rayman => Main.rayman;
         public static Rayman2.Persos.StdCam stdCam => GetPerso<Rayman2.Persos.StdCam>();
+
+        public static void LoadLevel(string lvl) {
+            Process.Start(new ProcessStartInfo {
+                FileName = Application.dataPath.Replace("_Data", ".exe"),
+                Arguments = $"-m Rayman2PC -d \"{Main.GetArgsGameDir()}\" -l " + lvl
+            });
+            Application.Quit();
+        }
 
         public void Restart() {
             if (!persoEnabled) return;
@@ -209,8 +216,8 @@ namespace RaymapGame {
         //}
 
         public P Clone<P>(Vector3 pos) where P : PersoController
-            => (P)Clone(typeof(P), out _, pos, Quaternion.identity, this);
-        public PersoController Clone(Type persoType, out PersoController cl, Vector3 pos, Quaternion rot)
+            => (P)Clone(typeof(P), out _, pos, Vector3.zero, this);
+        public PersoController Clone(Type persoType, out PersoController cl, Vector3 pos, Vector3 rot)
             => Clone(persoType, out cl, pos, rot, this);
         /// <summary>
         /// Create a copy of another Perso in the scene and potentially add custom behaviour to it.
@@ -218,7 +225,7 @@ namespace RaymapGame {
         /// @param bool [isAlways = false] Projectiles and the likes are "isAlways" objects. They do not have level loading and Sector data, but are always loaded.
         /// @param Type [customContoller = null] Whether to add custom behaviour to this clone. Leave null to add the same behaviour as the original.
         /// </summary>
-        public static PersoController Clone(Type persoType, out PersoController cl, Vector3 pos, Quaternion rot, PersoController spawner) {
+        public static PersoController Clone(Type persoType, out PersoController cl, Vector3 pos, Vector3 rot, PersoController spawner) {
             if (!Main.isRom) {
                 var pc = GetPerso(persoType);
                 OpenSpace.Object.Perso clone;               //the clone to-be
@@ -258,8 +265,6 @@ namespace RaymapGame {
                     clone.Gao.transform.position = pos;
 
                 cl = pb.gameObject.AddComponent(persoType) as PersoController;
-                if (cl == null)
-                    Debug.LogError($"Attempted to clone an invalid Perso type ({persoType.Name}).");
                 cl.creator = spawner;
 
                 return cl;

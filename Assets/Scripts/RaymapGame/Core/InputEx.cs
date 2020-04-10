@@ -11,7 +11,9 @@ namespace RaymapGame {
         public string
             jump = "A",
             shoot = "Space",
-            strafe = "LControl";
+            strafe = "LControl",
+            duck = "Z",
+            score = "J";
 
         static InputEx inst;
         public static float deadZone = 0.15f;
@@ -34,7 +36,7 @@ namespace RaymapGame {
         public static float lStickAngle => Mathf.Atan2(-lStick.x, lStick.y) * Mathf.Rad2Deg;
         public static float lStickAngleCam
             => Camera.main.transform.rotation.eulerAngles.y
-            + Mathf.Atan2(-lStick_s.x, -lStick_s.y) * Mathf.Rad2Deg;
+            + Mathf.Atan2(lStick_s.x, lStick_s.y) * Mathf.Rad2Deg;
         public static Vector3 lStickCam_s
             => Matrix4x4.Rotate(Camera.main.transform.rotation).MultiplyVector(lStick3D_s);
 
@@ -45,7 +47,9 @@ namespace RaymapGame {
         public static bool
             iJumpDown, iJumpHold, iJumpUp,
             iShootDown, iShootHold, iShootUp,
-            iStrafeDown, iStrafeHold, iStrafeUp;
+            iStrafeDown, iStrafeHold, iStrafeUp,
+            iDuckDown, iDuckHold, iDuckUp,
+            iScoreDown;
 
 
         void Update() {
@@ -73,6 +77,12 @@ namespace RaymapGame {
             iStrafeDown = GetKeyDown(inst.strafe.ToLower()) || GetKeyDown(KeyCode.JoystickButton4);
             iStrafeHold = GetKey(inst.strafe.ToLower()) || GetKey(KeyCode.JoystickButton4);
             iStrafeUp = GetKeyUp(inst.strafe.ToLower()) || GetKeyUp(KeyCode.JoystickButton4);
+
+            iDuckDown = GetKeyDown(inst.duck.ToLower()) || GetKeyDown(KeyCode.JoystickButton1);
+            iDuckHold = GetKey(inst.duck.ToLower()) || GetKey(KeyCode.JoystickButton1);
+            iDuckUp = GetKeyUp(inst.duck.ToLower()) || GetKeyUp(KeyCode.JoystickButton1);
+
+            iScoreDown = GetKeyDown(inst.score.ToLower()) || GetKeyDown(KeyCode.JoystickButton3);
         }
     }
 }

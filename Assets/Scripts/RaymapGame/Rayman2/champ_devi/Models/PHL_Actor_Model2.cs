@@ -18,6 +18,7 @@ namespace RaymapGame.Rayman2.Persos {
 
                 anim.Set(0);
                 anim.Set(1);
+                SFX("Rayman2/bounce").Play();
             }
         }
     }

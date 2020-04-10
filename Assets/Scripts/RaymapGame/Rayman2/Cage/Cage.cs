@@ -9,11 +9,10 @@ namespace RaymapGame.Rayman2.Persos {
         public override bool resetOnRayDeath => false;
 
 
-        Timer t_flapStop = new Timer();
         protected void DumpBarrelAnim() {
             anim.Set(0);
             anim.Set(Anim.BarrelDispenserFlap);
-            t_flapStop.Start(2, () => anim.Set(Anim.BarrelDispenserIdle));
+            Timers("Flap Stop").Start(2, () => anim.Set(Anim.BarrelDispenserIdle));
         }
 
 

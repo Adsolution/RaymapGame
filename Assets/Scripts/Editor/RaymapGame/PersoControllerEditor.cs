@@ -45,7 +45,7 @@ namespace RaymapGame {
             var soc = perso.GetComponent<SuperObjectComponent>(); if (soc != null) soc.hideFlags = HideFlags.HideInInspector;
             var cbc = perso.GetComponent<CustomBitsComponent>(); if (cbc != null) cbc.hideFlags = HideFlags.HideInInspector;
             perso.GetComponent<MindComponent>().hideFlags = HideFlags.HideInInspector;
-            perso.GetComponent<Moddable>().hideFlags = HideFlags.HideInInspector;
+            var mod = perso.GetComponent<Moddable>(); if (mod != null) mod.hideFlags = HideFlags.HideInInspector;
             var dmc = perso.GetComponent<DynamicsMechanicsComponent>(); if (dmc != null) dmc.hideFlags = HideFlags.HideInInspector;
 
             perso.GetComponent<AnimHandler>().hideFlags = HideFlags.HideInInspector;
@@ -59,7 +59,7 @@ namespace RaymapGame {
 
             Header("Transform", true);
             Field("Position", perso.pos);
-            Field("Rotation", perso.rot.eulerAngles);
+            Field("Rotation", perso.rot);
             Field("Scale", perso.scale3);
             Field("Sector", perso.sector);
 

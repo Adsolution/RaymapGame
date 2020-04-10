@@ -10,6 +10,9 @@ namespace RaymapGame.Rayman2.Persos {
         public override bool isAlways => true;
         public override bool resetOnRayDeath => false;
 
+        public int lums;
+        public int cages;
+
         protected virtual void Events() { }
         public virtual void Music() { }
 

@@ -13,7 +13,6 @@ namespace RaymapGame.Rayman2.Persos {
 
         protected override void OnStart() {
             grabDist = GetDsgVar<float>("Float_6");
-            flyGraph = GetDsgVar<WaypointGraph>("Graph_3");
 
             maxHitPoints = float.PositiveInfinity;
             HealFull();
@@ -37,7 +36,7 @@ namespace RaymapGame.Rayman2.Persos {
 
 
         void Rule_Nav() {
-            if (NavWaypointGraph(flyGraph, true))
+            if (NavWaypointGraph(flyGraph = GetDsgVar<WaypointGraph>("Graph_3"), true))
                 SetRule("");
         }
     }

@@ -19,7 +19,7 @@ namespace RaymapGame.Rayman2.Persos {
                 Timers("Remove").Start(0.9f, Remove);
                 gravity = 4;
                 scale = Random.Range(0.75f, 1.25f);
-                rot = Random.rotation;
+                rot = rndRot;
             }
             radius = scale += dt;
             ApplyGravity();

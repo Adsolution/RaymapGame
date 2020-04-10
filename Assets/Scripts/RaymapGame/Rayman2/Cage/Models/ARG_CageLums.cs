@@ -16,9 +16,9 @@ namespace RaymapGame.Rayman2.Persos {
             hitPoints = 20;
 
             if (ground = GetDsgVar<byte>("UByte_1") == 1)
-                anim.Set(Anim.CageGround);
+                anim.Set(Anim.CageGround, 0);
             else {
-                anim.Set(Anim.CageHanging);
+                anim.Set(Anim.CageHanging, 0);
                 SetShadow(true);
                 shadow.size = 2;
                 shadow.fadeDistance = 30;
@@ -27,23 +27,30 @@ namespace RaymapGame.Rayman2.Persos {
             SetRule("DesiringFreedom");
         }
 
-        Timer t_hit = new Timer();
         protected void Rule_DesiringFreedom() {
-            if (ReceiveProjectiles() != null)
+            if (ReceiveProjectiles() != null) {
                 if (ground) {
                     anim.Set(Anim.CageGroundHit, 0);
-                    t_hit.Start(0.3f, () => anim.Set(Anim.CageGround));
+                    Timers("Hit").Start(0.3f, () => anim.Set(Anim.CageGround, 0));
                 }
                 else anim.Set(Anim.CageHangingHit, 0);
+                SFX("Rayman2/Cage/Hit").Play();
+            }
+
+            Timers("Help").Start(Random.Range(8, 18), ()
+                => SFX("Rayman2/Cage/Help").Play(), false);
         }
 
         protected override void OnDeath() {
-            t_hit.Abort();
+            GetPerso<World>().cages++;
+            Timers("Hit").Abort();
+            Timers("Help").Abort();
             if (ground) {
                 anim.Set(Anim.CageGroundBreak, 1);
-                t_hit.Start(1, () => SetVisibility(false));
+                Timers("Hide").Start(1.1f, () => SetVisibility(false));
             }
             else anim.Set(Anim.CageHangingBreak, 1);
+            SFX("Rayman2/Cage/Break").Play();
             SetShadow(false);
             SetRule("");
         }

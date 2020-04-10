@@ -60,10 +60,19 @@ namespace RaymapGame {
                     c.Add(new Channel(t));
             channels = c.ToArray();
 
+            // Collect scripts
+            var bhvs = transform.Find("Rule behaviours");
+            if (bhvs != null)
+                foreach (Transform bh in bhvs) {
+                    var scrs = new List<ScriptComponent>();
+                    foreach (Transform sc in bh) scrs.Add(sc.GetComponent<ScriptComponent>());
+                    scripts.Add(bh.name.Split('\"')[1], scrs.ToArray());
+                }
+
             // Position and setup
             col.controller = this;
             startPos = pos = transform.position;
-            startRot = rot = transform.rotation;
+            startRot = rot = transform.rotation.eulerAngles - new Vector3(0, 180, 0);
             startScale = scale3 = transform.localScale;
             startSector = sector;
 
@@ -141,8 +150,8 @@ namespace RaymapGame {
             foreach (var c in channels) {
                 if (c.startPos != c.pos && c.pos != c.tr.position)
                     c.tr.position = c.pos;
-                if (c.startRot != c.rot && c.rot != c.tr.rotation)
-                    c.tr.rotation = c.rot;
+                if (c.startRot != c.rot && c.rot != c.tr.rotation.eulerAngles)
+                    c.tr.rotation = Quaternion.Euler(c.rot);
                 if (c.visible != c.startVisible)
                     foreach (var mr in c.tr.GetComponentsInChildren<MeshRenderer>())
                         mr.enabled = c.visible;
@@ -197,7 +206,7 @@ namespace RaymapGame {
                     // Rotational
                     if (rotVel.magnitude > 0) {
                         if (rotFric > 0) rotVel /= 1f + rotFric * globalFricMult * dt;
-                        rot.eulerAngles += rotVel * dt;
+                        rot += rotVel * dt;
                     }
                 }
 
@@ -219,9 +228,10 @@ namespace RaymapGame {
                 if (scale <= 0) scale = 0.0001f;
                 transform.localScale = scale3;
 
+                rot = WrapAngle3(Vector3.zero, rot);
                 posPrev = pos;
                 deltaPos = pos - posFrame;
-                deltaRot = rot * Quaternion.Inverse(rotFrame);
+                deltaRot = rot - rotFrame;
                 apprVel = deltaPos / dt;
             }
 
@@ -232,7 +242,7 @@ namespace RaymapGame {
                 var ch = GetChannel(handChannel, true);
                 if (ch != null) {
                     carryPerso.pos = ch.pos;
-                    carryPerso.rot = ch.rot * Quaternion.Euler(handChannelRot);
+                    carryPerso.rot = ch.rot + handChannelRot;
                 }
             }
 

@@ -26,6 +26,7 @@ namespace RaymapGame.Rayman2.Persos {
         Timer t_opening = new Timer();
         protected void Rule_Open() {
             if (newRule) {
+                SFX("Rayman2/PorteOpen").Play();
                 anim.Set(Anim.Opening);
                 t_opening.Start(0.6f, () => anim.Set(Anim.Open));
             }
@@ -35,6 +36,7 @@ namespace RaymapGame.Rayman2.Persos {
 
         protected void Rule_Closed() {
             if (newRule) {
+                SFX("Rayman2/PorteClose").Play();
                 anim.Set(Anim.Closing);
                 t_opening.Start(0.6f, () => anim.Set(Anim.Closed));
             }

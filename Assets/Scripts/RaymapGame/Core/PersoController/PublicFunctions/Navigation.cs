@@ -14,8 +14,8 @@ namespace RaymapGame {
         //========================================
         //  Navigation
         //========================================
-        public void NavDirection(Vector3 dir, bool tank = false) {
-            if (navRotSpeed > 0) FaceDir2D(dir, navRotSpeed);
+        public void NavDirection(Vector3 dir, bool tank = false, bool noFaceDir = false) {
+            if (navRotSpeed > 0 && !noFaceDir) FaceDir2D(dir, navRotSpeed);
             var vec = tank ? forward : dir.normalized;
             velXZ += vec * fricXZ * globalFricMult * moveSpeed * dt;
             velY += vec.y * fricY * globalFricMult * moveSpeed * dt;
@@ -23,9 +23,11 @@ namespace RaymapGame {
         public void NavDirection2D(Vector3 dir, bool tank = true)
             => NavDirection(new Vector3(dir.x, 0, dir.z), tank);
         public void NavDirectionRel(Vector3 dir, bool tank = false)
-            => NavDirection(Matrix4x4.Rotate(rot).MultiplyVector(new Vector3(-dir.x, dir.y, -dir.z)), tank);
+            => NavDirection(matRot.MultiplyVector(dir), tank);
         public void NavDirectionCam(Vector3 dir, bool tank = true)
             => NavDirection(Matrix4x4.Rotate(Camera.main.transform.rotation).MultiplyVector(dir));
+        public void NavForwards()
+            => NavDirection(forward, false, true);
         public bool NavTowards(Target target, bool tank = true, bool arriveAccurate = false) {
             var vec = target - pos;
             if (!arriveAccurate || vec.magnitude > moveSpeed * 0.5f / fricMag)
@@ -34,9 +36,6 @@ namespace RaymapGame {
         }
         public bool NavTowards2D(Target target, bool tank = true, bool arriveAccurate = false)
             => NavTowards(new Vector3(target.x, pos.y, target.z), tank, arriveAccurate);
-        public void NavForwards()
-            => NavTowards(pos + forward);
-
 
         public bool NavArcFromTo(Target from, Target to, float height, float time) {
             var vec = to.pos - from.pos;
@@ -47,9 +46,7 @@ namespace RaymapGame {
                 ? Mathf.Pow(1 + -Mathf.Abs(2 * prog), 2)
                 : Mathf.Pow(1 + -Mathf.Abs(2 * -prog + 2), 2));
 
-            if (DistTo(to) < 1)
-                return true;
-            return false;
+            return DistTo(to) < 1;
         }
 
 
@@ -58,6 +55,7 @@ namespace RaymapGame {
         public void RotateToStick(float t = 10) {
             if (lStickPress)
                 SetRotY(lStickAngleCam, t * Mathf.Clamp(lStick_s.sqrMagnitude, 0.2f, 50) * 2);
+            rot.z = 0;
         }
         public void InputMovement(bool strafe = false, float factor = 1) {
             if (!lStickPress) return;
@@ -93,8 +91,8 @@ namespace RaymapGame {
             if (wp == null) {
                 if ((wp = GetNearestWaypoint()) == null)
                     return false;
-                if (wp.next != null && DistTo(wpNext(r2).pos) < Vector3.Distance(wp.pos, wpNext(r2).pos))
-                    wp = wp.next;
+                if (wpNext(r2) != null && DistTo(wpNext(r2).pos) < Vector3.Distance(wp.pos, wpNext(r2).pos))
+                    wp = wpNext(r2);
             }
             if (InWaypointRadius(wp))
                 wp = wpNext(r2);

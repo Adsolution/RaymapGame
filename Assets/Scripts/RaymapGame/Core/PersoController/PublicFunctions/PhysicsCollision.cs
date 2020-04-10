@@ -94,5 +94,11 @@ namespace RaymapGame {
                 + perso.GetCollisionSphere(collideType).radius
                 || GetCollisionBox(collideType).Contains(perso.pos);
         }
+
+
+        public void SetCollision(bool active) {
+            foreach (var c in GetComponentsInChildren<Collider>())
+                c.enabled = active;
+        }
     }
 }

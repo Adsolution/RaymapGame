@@ -19,7 +19,7 @@ namespace RaymapGame.Rayman2.Persos {
         protected void Rule_Default() {
             if (prune == null) {
                 prune = Clone<BNT_ThePrune>(pos);
-                prune.rot.eulerAngles = SwapYZ(GetDsgVar<Vector3>("Vector_5"));
+                prune.rot = SwapYZ(GetDsgVar<Vector3>("Vector_5"));
             }
             else if (ReceiveProjectiles()) {
                 prune.SetRule("Bouncing");

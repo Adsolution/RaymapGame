@@ -4,15 +4,15 @@ using static RaymapGame.InputEx;
 
 namespace RaymapGame.Rayman2.Persos {
     public partial class StdCam {
-        protected void Rule_AxeForce(Vector3 focus, float tRotY) {
+        protected void Rule_AxeForce(Vector3 focus, float dist, float xAngle) {
             col.wallEnabled = false;
             var focXZ = new Vector3(focus.x, 0, focus.z);
             var targXZ = new Vector3(targ.pos.x, 0, targ.pos.z);
 
             var vec = targXZ - focXZ;
-            SetOrbit(new Vector3(focus.x, targ.pos.y, focus.z), vec.magnitude + 10, -Mathf.Atan2(vec.z, vec.x) * Mathf.Rad2Deg - 90, 10, 3, 4);
-            LookAtY(targ.pos, 0, tRotY);
-            LookAtX(targ.pos, 5, 2);
+            SetOrbit(new Vector3(focus.x, targ.pos.y, focus.z), vec.magnitude + dist, -Mathf.Atan2(vec.z, vec.x) * Mathf.Rad2Deg - 90, xAngle, 3, 4);
+            LookAtY(targ.pos, 0, 8);
+            LookAtX(targ.pos, -5, 2);
             Orbit();
         }
 
@@ -37,7 +37,7 @@ namespace RaymapGame.Rayman2.Persos {
             }
             col.wallEnabled = false;
             this.pos = Vector3.Lerp(this.pos, pos + Vector3.up, tCheck(t));
-            SetOrbitRot(rot.eulerAngles.y + 180);
+            SetOrbitRot(rot.y);
             LookAtX(targ.center, 0, 10);
             LookAtY(targ.center, 0, 10);
         }
@@ -46,7 +46,7 @@ namespace RaymapGame.Rayman2.Persos {
         Vector3 freeRot;
         protected void Rule_Free() {
             col.wallEnabled = false;
-            if (newRule) freeRot = rot.eulerAngles;
+            if (newRule) freeRot = rot;
             SetFriction(1, 1);
 
             // Look
@@ -74,7 +74,7 @@ namespace RaymapGame.Rayman2.Persos {
                 NavDirectionCam(lStick3D_s);
             }
 
-            rot.eulerAngles = freeRot;
+            rot = freeRot;
         }
     }
 }

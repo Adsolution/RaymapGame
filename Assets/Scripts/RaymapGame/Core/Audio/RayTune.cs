@@ -24,7 +24,7 @@ namespace RaymapGame {
         public const int MP3_DELAY = 528;
 
         public void DownloadClip() {
-            dClip = UnityWebRequestMultimedia.GetAudioClip(url, AudioType.MPEG);
+            dClip = UnityWebRequestMultimedia.GetAudioClip(url, AudioType.OGGVORBIS);
             dClip.SendWebRequest();
         }
         public AudioClip GetDownloadedClip() {

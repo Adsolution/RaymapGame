@@ -71,7 +71,7 @@ namespace RaymapGame {
             => (P)FindTarget(typeof(P), maxDist, maxAngle, false);
         public PersoController FindTarget(Type persoType, float maxDist, float maxAngle, bool onlyZDE)
             => target = GetClosestPerso(persoType, (p) =>
-                    !p.dead && DistTo(p) < maxDist
+                    p != creator && !p.dead && DistTo(p) < maxDist
                     && Vector3.Angle(forward, new Vector3(p.pos.x, 0, p.pos.z)
                         - new Vector3(pos.x, 0, pos.z)) < maxAngle
                     && (!onlyZDE || p.HasCollisionType(CollideType.ZDE)));
@@ -101,7 +101,7 @@ namespace RaymapGame {
         public Rayman2.Persos.Alw_Explosion_model CreateExplosion(Vector3 pos, float radius = 6)
             => CreateExplosion(this, pos, radius);
         public static Rayman2.Persos.Alw_Explosion_model CreateExplosion(PersoController spawner, Vector3 pos, float radius = 6) {
-            var expl = (Rayman2.Persos.Alw_Explosion_model)Clone(typeof(Rayman2.Persos.Alw_Explosion_model), out var c, pos, Quaternion.identity, spawner);
+            var expl = (Rayman2.Persos.Alw_Explosion_model)Clone(typeof(Rayman2.Persos.Alw_Explosion_model), out var c, pos, Vector3.zero, spawner);
             expl.radius = radius;
             expl.Explode();
             return expl;
@@ -113,19 +113,22 @@ namespace RaymapGame {
 
         // Carrying / Throwing
 
-        public PersoController HoldPerso(PersoController persoToHold)
+        public PersoController CarryPerso(PersoController persoToHold)
             => CarryPerso(persoToHold, handChannel);
         public PersoController CarryPerso(PersoController persoToHold, int handChannel) {
             carryPerso = persoToHold;
             this.handChannel = handChannel;
-            if (carryPerso != null)
+            if (carryPerso != null) {
+                carryPerso.SetCollision(false);
                 carryPerso.vel = Vector3.zero;
+            }
             return persoToHold;
         }
 
         Vector3 thrStart, thrTarg;
         public void ThrowCarriedFoward(Target target = null) {
             if (carryPerso != null) {
+                carryPerso.SetCollision(true);
                 if (target == null) {
                     carryPerso.velY = 10;
                     carryPerso.velXZ = forward * 25;
@@ -142,6 +145,7 @@ namespace RaymapGame {
         }
         public void ThrowCarriedUp() {
             if (carryPerso != null) {
+                carryPerso.SetCollision(true);
                 carryPerso.velY = 20;
                 carryPerso.velXZ = Vector3.zero;
                 carryPerso.OnThrown();
@@ -152,6 +156,7 @@ namespace RaymapGame {
 
 
         public void DropCarried() {
+            carryPerso.SetCollision(true);
             carryPerso.OnThrown();
             carryPerso = null;
             Timers("ThrowBlock").Start(1);

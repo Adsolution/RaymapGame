@@ -13,7 +13,7 @@ using System.Reflection;
 namespace RaymapGame {
     partial class MusicHandler : MonoBehaviour {
         public AudioMixerGroup musicMixerGroup;
-        public float _volume = 0.7f;
+        public float _volume = 0.75f;
         static MusicHandler inst;
         public static float volume { get => inst._volume; set { inst._volume = value; } }
         public static RayTune[] tunes;
@@ -27,15 +27,17 @@ namespace RaymapGame {
                 t.clip = t.GetDownloadedClip();
         }
 
+        const int RATE = 22050;
+
         public static void SetSection(int section, int bar, bool loop = true, Action onFinishAction = null) {
             if (tune.clip == null) return;
             var cl = tune.clip;
             int s1 = tune.sectBars[section];
             int s2 = section + 1 >= tune.sectBars.Length ? tune.clip.samples - s1 : tune.sectBars[section + 1];
-            int newSmpStart = (int)(44100 * 2 * s1 * tune.barLength);
-            int newSmpLength = (int)((44100 * 2 * s2 * tune.barLength) - (s1 * tune.barLength * 44100 * 2));
+            int newSmpStart = (int)(RATE * 2 * s1 * tune.barLength);
+            int newSmpLength = (int)((RATE * 2 * s2 * tune.barLength) - (s1 * tune.barLength * RATE * 2));
             
-            var newCl = AudioClip.Create($"{cl.name}_sec{section}", newSmpLength / 2, 2, 44100, false);
+            var newCl = AudioClip.Create($"{cl.name}_sec{section}", newSmpLength / 2, 2, RATE, false);
             float[] data = new float[newSmpLength];
             tune.clip.GetData(data, Mathf.Clamp(newSmpStart / 2, 0, int.MaxValue));
             newCl.SetData(data.Take(newSmpLength).ToArray(), 0);
@@ -79,6 +81,12 @@ namespace RaymapGame {
                 SetSection(section, bar, loop, onFinishAction);
         }
 
+        public static void Next()
+            => Next(null);
+        public static void Next(Action onFinishAction) {
+            QueueMusic(tuneIdx, section + 1, 0, onFinishAction);
+        }
+
         public static void QueueMusic(int song, int section, int bar, Action onFinishAction)
             => QueueMusic(song, section, bar, false, onFinishAction);
         public static void QueueMusic(int song, int section, int bar, bool loop = true, Action onFinishAction = null) {
@@ -94,10 +102,15 @@ namespace RaymapGame {
         }
 
         void FixedUpdate() {
-            if (!Main.loaded) return;
-            /*
-            foreach (var t in tunes)
-                t.clip = t.GetDownloadedClip();*/
+            if (Main.lvlName == null)
+                return;
+            if (tunes == null)
+                GetTunes();
+            if (!Main.loaded || tunes == null)
+                return;
+            
+            foreach (var t in tunes.Where((x) => x.clip == null))
+                t.clip = t.GetDownloadedClip();
 
             if (!loop && !asrc.isPlaying && action != null) {
                 var ac = action;
@@ -105,7 +118,8 @@ namespace RaymapGame {
                 ac.Invoke();
             }
 
-            ((Rayman2.Persos.World)PersoController.GetPerso("World")).Music();
+            var world = ((Rayman2.Persos.World)PersoController.GetPerso("World"));
+            if (world != null) world.Music();
 
             if (tr && (tune == null || bar >= trBar))
                 SetMusic(tuneIdx, section, newBar, loop, action);
@@ -124,8 +138,6 @@ namespace RaymapGame {
 
 
         void Awake() {
-            enabled = false;
-            return;
             inst = this;
             asrc = gameObject.AddComponent<AudioSource>();
             asrc.loop = true;
@@ -136,42 +148,45 @@ namespace RaymapGame {
         }
 
         //asrc.clip = R2Audio.APM.DecodeFile(apmPath);
-        void Start() {
+
+        void GetTunes() {
             switch (Main.lvlName.ToLower()) {
                 case "learn_10": tunes = new RayTune[] {
-                    new RayTune(100, "https://raytunes.raymanpc.com/music/R2/003%20-%20The%20Woods%20of%20Light%20~First%20Dawn~.mp3",
+                    new RayTune(100, "http://www.mediafire.com/file/6w8rcztlvarorh1/003_-_The_Woods_of_Light_%257EFirst_Dawn%257E.ogg/file",
                     0, 8),
-                    new RayTune(100, "https://raytunes.raymanpc.com/music/R2/004%20-%20The%20Woods%20of%20Light.mp3",
+                    new RayTune(100, "http://www.mediafire.com/file/zfaobqvg5u7ky3p/004_-_The_Woods_of_Light.ogg/file",
                     0, 4, 12, 22, 38),
-                    new RayTune(100, "https://raytunes.raymanpc.com/music/R2/005%20-%20The%20Woods%20of%20Light%20(Reprise).mp3",
+                    new RayTune(100, "http://www.mediafire.com/file/3scnkfcjpurqifm/005_-_The_Woods_of_Light_%2528Reprise%2529.ogg/file",
                     0, 8),
                 }; break;
 
                 case "learn_30": tunes = new RayTune[] {
-                    new RayTune(129, "https://raytunes.raymanpc.com/music/R2/013%20-%20The%20Fairy%20Glade.mp3",
+                    new RayTune(129, "http://www.mediafire.com/file/v06te9ql1aij3y7/013_-_The_Fairy_Glade.ogg/file",
                     0, 8, 24, 48, 72, 80, 96),
+                    new RayTune(129, "http://www.mediafire.com/file/jgpqssh77rx61z9/014_-_The_Fairy_Glade_%2528Reprise%2529.ogg/file",
+                    0, 16, 24),
                 }; break;
 
                 case "learn_31": tunes = new RayTune[] {
-                    new RayTune(129, "https://raytunes.raymanpc.com/music/R2/013%20-%20The%20Fairy%20Glade.mp3",
+                    new RayTune(129, "http://www.mediafire.com/file/v06te9ql1aij3y7/013_-_The_Fairy_Glade.ogg/file",
                     0, 8, 24, 48, 72, 80, 96),
-                    new RayTune(129, "https://raytunes.raymanpc.com/music/R2/014%20-%20The%20Fairy%20Glade%20(Reprise).mp3",
+                    new RayTune(129, "http://www.mediafire.com/file/jgpqssh77rx61z9/014_-_The_Fairy_Glade_%2528Reprise%2529.ogg/file",
                     0, 16, 24),
                 }; break;
 
                 case "chase_10": tunes = new RayTune[] {
-                    new RayTune(84, "https://raytunes.raymanpc.com/music/R2/034%20-%20The%20Bayou%20~The%20Warship~.mp3",
+                    new RayTune(84, "http://www.mediafire.com/file/aqaefmr4r11gvu5/034_-_The_Bayou_%257EThe_Warship%257E.ogg/file",
                     0, 24, 32, 48),
-                    new RayTune(65, "https://raytunes.raymanpc.com/music/R2/035%20-%20The%20Bayou%20~Dark%20Swamp~.mp3",
+                    new RayTune(65, "http://www.mediafire.com/file/ukppyoolqaj4zwf/035_-_The_Bayou_%257EDark_Swamp%257E.ogg/file",
                     0, 16, 32),
                     new RayTune(103, "https://raytunes.raymanpc.com/music/R2/020%20-%20A%20Small%20Skirmish%20(Reprise).mp3",
                     0, 16),
                 }; break;
 
                 case "chase_22": tunes = new RayTune[] {
-                    new RayTune(110, "https://raytunes.raymanpc.com/music/R2/036%20-%20The%20Bayou%20~The%20Pirate%20Base~.mp3",
+                    new RayTune(110, "http://www.mediafire.com/file/isgv4x9b4qawhr7/036_-_The_Bayou_%257EThe_Pirate_Base%257E.ogg/file",
                     0, 8, 24),
-                    new RayTune(110, "https://raytunes.raymanpc.com/music/R2/037%20-%20The%20Bayou%20~The%20Pirate%20Base~%20(Reprise).mp3",
+                    new RayTune(110, "http://www.mediafire.com/file/p3tp1rz707w5kj2/037_-_The_Bayou_%257EThe_Pirate_Base%257E_%2528Reprise%2529.ogg/file",
                     0, 8, 24),
                     new RayTune(103, "https://raytunes.raymanpc.com/music/R2/020%20-%20A%20Small%20Skirmish%20(Reprise).mp3",
                     0, 16),
@@ -179,11 +194,11 @@ namespace RaymapGame {
 
                 case "water_10":
                     tunes = new RayTune[] {
-                    new RayTune(136, "https://raytunes.raymanpc.com/music/R2/040%20-%20The%20Sanctuary%20of%20Water%20and%20Ice%20(Reprise%202).mp3",
+                    new RayTune(136, "http://download1514.mediafire.com/dkgjdnxrvqqg/3loqk8q3kvir3ei/040+-+The+Sanctuary+of+Water+and+Ice+%28Reprise+2%29.ogg",
                     0, 8),
-                    new RayTune(136, "https://raytunes.raymanpc.com/music/R2/039%20-%20The%20Sanctuary%20of%20Water%20and%20Ice%20(Reprise%201).mp3",
+                    new RayTune(136, "http://download1649.mediafire.com/1pf5d7mjwuqg/jt9j1yatmttajxf/039+-+The+Sanctuary+of+Water+and+Ice+%28Reprise+1%29.ogg",
                     0, 8, 12, 28),
-                    new RayTune(136, "https://raytunes.raymanpc.com/music/R2/038%20-%20The%20Sanctuary%20of%20Water%20and%20Ice.mp3",
+                    new RayTune(136, "http://download850.mediafire.com/k5ollidh0rfg/vkrorlbd79qiry1/038+-+The+Sanctuary+of+Water+and+Ice.ogg",
                     0, 8, 12, 28),
                 }; break;
 
@@ -199,6 +214,12 @@ namespace RaymapGame {
                     0, 15),
                     new RayTune(184, "https://raytunes.raymanpc.com/music/R2/073%20-%20Extreme%20Heat.mp3",
                     0, 16, 24), 
+                }; break;
+
+                case "whale_10":
+                    tunes = new RayTune[] {
+                    new RayTune(78, "http://download947.mediafire.com/3v1isgbi36yg/wyuinjqcjjg2ans/071+-+The+Whale+Bay+~Bubble+Trail~.ogg",
+                    0, 16, 36, 56),
                 }; break;
 
                 case "plum_10":
@@ -217,23 +238,34 @@ namespace RaymapGame {
                     0, 12, 16),
                 }; break;
 
+                case "earth_10":
+                    tunes = new RayTune[] {
+                    new RayTune(75, "https://www.mediafire.com/file/nq2vyt710v2rmaq/Occluded_Woods-wip5.ogg/file",
+                    0, 18, 20, 24, 48, 56, 72, 80, 88, 96),
+                }; break;
+
                 case "helic_10":
                     tunes = new RayTune[] {
-                    new RayTune(120, "https://raytunes.raymanpc.com/music/R2/109%20-%20Hot%20Air%20Flight.mp3",
+                    new RayTune(120, "http://www.mediafire.com/file/q2vg4fw28r01xvh/109_-_Hot_Air_Flight.ogg/file",
                     0, 8, 12, 20, 28),
+                    new RayTune(120, "http://www.mediafire.com/file/1lma0fk342c1np5/110_-_Hot_Air_Flight_%2528Reprise%2529.ogg/file",
+                    0, 9, 12),
                 }; break;
 
                 case "helic_20":
                     tunes = new RayTune[] {
-                    new RayTune(120, "https://raytunes.raymanpc.com/music/R2/109%20-%20Hot%20Air%20Flight.mp3",
+                    new RayTune(120, "http://www.mediafire.com/file/q2vg4fw28r01xvh/109_-_Hot_Air_Flight.ogg/file",
                     0, 8, 12, 20, 28),
                 }; break;
 
                 case "learn_40":
                     tunes = new RayTune[] {
-                    new RayTune(100, "https://raytunes.raymanpc.com/music/R2/021%20-%20Pirate%20Machinery.mp3",
+                    new RayTune(100, "https://www.mediafire.com/file/kotwq7mf4wxda4t/021_-_Pirate_Machinery.ogg/file",
+                    0, 8, 16),
+                    new RayTune(100, "https://www.mediafire.com/file/16h9kx1kejpl16d/022_-_Pirate_Machinery_%28Reprise%29.ogg/file",
                     0, 8, 16),
                 }; break;
+
             }
         }
     }

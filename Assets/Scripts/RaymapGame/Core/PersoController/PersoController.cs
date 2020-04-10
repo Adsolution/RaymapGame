@@ -24,6 +24,7 @@ namespace RaymapGame {
         public AnimHandler anim;
         public RayCollider col = new RayCollider();
         public Channel[] channels;
+        public Dictionary<string, ScriptComponent[]> scripts = new Dictionary<string, ScriptComponent[]>();
 
         public string persoFamily;
         public string persoModel;
@@ -33,7 +34,7 @@ namespace RaymapGame {
         public object[] ruleParams;
 
         public Vector3 pos;
-        public Quaternion rot;
+        public Vector3 rot;
         public Vector3 scale3;
         public float scale { get => scale3.x; set { scale3 = Vector3.one * value; } }
 
@@ -48,10 +49,8 @@ namespace RaymapGame {
             }
         }
         public Vector3 velRel {
-            get => Matrix4x4.Rotate(Quaternion.Euler(0, 180, 0) * rot).MultiplyPoint3x4(vel);
-            set {
-                vel = Matrix4x4.Rotate(Quaternion.Euler(0, 180, 0) * rot).MultiplyPoint3x4(value);
-            }
+            get => matRot.MultiplyPoint3x4(vel);
+            set { vel = matRot.MultiplyPoint3x4(value); }
         }
 
         public float fricXZ = 50, fricY = 0;
@@ -111,14 +110,14 @@ namespace RaymapGame {
         public string rule { get; private set; } = NO_RULE_SET;
         const string NO_RULE_SET = "[no rule set]";
         public Vector3 startPos { get; private set; }
-        public Quaternion startRot { get; private set; }
+        public Vector3 startRot { get; private set; }
         public Vector3 startScale { get; private set; }
         public int startSector { get; private set; }
         protected Vector3 posFrame { get; private set; }
-        protected Quaternion rotFrame { get; private set; }
+        protected Vector3 rotFrame { get; private set; }
         protected Vector3 posPrev { get; private set; }
         public Vector3 deltaPos { get; private set; }
-        public Quaternion deltaRot { get; private set; }
+        public Vector3 deltaRot { get; private set; }
         public Vector3 apprVel { get; private set; }
         protected string prevRule { get; private set; }
         protected string prevRuleIdk { get; private set; }
@@ -141,7 +140,7 @@ namespace RaymapGame {
         // Interpolate fixed time movement
         public virtual bool interpolate => Main.useFixedTimeWithInterpolation;
         public Vector3 interpolPos => pos;
-        public Quaternion interpolRot => rot;
+        public Quaternion interpolRot => Quaternion.Euler(-rot.x, rot.y - 180, rot.z);
 
 
         static void InitPersoCoreAndScripts(Perso p, bool forceAlways = false, int i = 0) {

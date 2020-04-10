@@ -25,7 +25,7 @@ namespace RaymapGame.Rayman2.Persos {
                     rvel *= -0.3f;
             }
 
-            rot = startRot * Quaternion.Euler(-rx, 0, 0);
+            rot = startRot + new Vector3(-rx, 0, 0);
         }
     }
 }

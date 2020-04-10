@@ -22,8 +22,8 @@ namespace RaymapGame.Rayman2.Persos {
         }
 
         protected void Rule_Rolling() {
-            if (NavNearestWaypointGraph(true)) {
-                stdCam.Shake(1, 0.5f, pos);
+            if (NavNearestWaypointGraph(false)) {
+                CamShake3D(1, 0.5f, pos);
                 CreateExplosion(pos, 4);
                 Remove();
                 return;

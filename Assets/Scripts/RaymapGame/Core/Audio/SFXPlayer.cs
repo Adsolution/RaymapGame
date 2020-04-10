@@ -72,26 +72,25 @@ namespace RaymapGame
         }
 
         Timer t_hyst = new Timer();
-        public void Play()
-        {
+        public void Play(float pitchVary = 0, float pitchAdd = 0) {
             if (queued.Count == 0 || t_hyst.active || asrc == null) return;
             switch (mode)
             {
                 case Mode.RandomNoRepeat:
-                    PlayClip(DequeueClip(queued[Random.Range(0, queued.Count - 1)]));
+                    PlayClip(DequeueClip(queued[Random.Range(0, queued.Count)]), pitchVary, pitchAdd);
                     break;
                 case Mode.Consecutive:
-                    PlayClip(DequeueClip(queued[0]));
+                    PlayClip(DequeueClip(queued[0]), pitchVary, pitchAdd);
                     break;
                 case Mode.Random:
-                    PlayClip(queued[Random.Range(0, queued.Count - 1)]);
+                    PlayClip(queued[Random.Range(0, queued.Count)], pitchVary, pitchAdd);
                     break;
             }
             if (queued.Count == 0) ResetQueue();
             t_hyst.Start(1f / 8);
         }
-        public void Stop()
-        {
+
+        public void Stop() {
             if (asrc != null) asrc.Stop();
         }
 
@@ -107,8 +106,8 @@ namespace RaymapGame
                 => asrc.volume = volume);
         }
 
-        void PlayClip(AudioClip clip)
-        {
+        void PlayClip(AudioClip clip, float pitchVary = 0, float pitchAdd = 0) {
+            asrc.pitch = 1 + pitchAdd + Random.Range(-pitchVary, pitchVary);
             switch (polyphony)
             {
                 case Polyphony.Mono:

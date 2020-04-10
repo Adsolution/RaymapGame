@@ -13,7 +13,10 @@ namespace RaymapGame.Rayman2.Persos {
         public bool danger1, danger2, danger3, danger4;
         public override void Music() {
             if (start)
-                SetMusic(0, 0, 0);
+                SetMusic(1, 1, 0);
+
+            else if (activeSector == 0 && rayman.helic)
+                QueueMusic(0, 0, 0);
 
             else if (!danger1 && activeSector == 16) {
                 QueueMusic(0, 1, 0, () => SetMusic(0, 0, 0));
@@ -26,7 +29,7 @@ namespace RaymapGame.Rayman2.Persos {
             }
 
             else if (!danger3 && activeSector == 4) {
-                QueueMusic(0, 1, 0, () => SetMusic(0, 0, 0));
+                QueueMusic(0, 1, 0, () => SetMusic(1, 0, 0));
                 danger3 = true;
             }
 
@@ -37,7 +40,7 @@ namespace RaymapGame.Rayman2.Persos {
                 QueueMusic(0, 0, 0);
 
             else if (!danger4 && activeSector == 6) {
-                QueueMusic(0, 1, 0, () => SetMusic(0, 0, 0));
+                QueueMusic(0, 1, 0, () => SetMusic(1, 0, 0));
                 danger4 = true;
             }
         }

@@ -45,10 +45,13 @@ namespace RaymapGame.Rayman2.Persos {
             // For particle collisions mostly
             Physics.RebuildBroadphaseRegions(new Bounds(startPos, Vector3.one * 250), 8);
 
-            maxHitPoints = 100;
-            hitPoints = 50;
+            maxHitPoints = 300;
+            hitPoints = 150;
             waypointLenience = 3;
             navRotSpeed = 10;
+
+            SFX("Rayman2/Rayman/helic").polyphony = SFXPlayer.Polyphony.Loop;
+            SFX("Rayman2/Rayman/jump").SetVolume(0.75f);
 
             SetShadow(true);
             SetRule("Air");
@@ -70,8 +73,8 @@ namespace RaymapGame.Rayman2.Persos {
 
             col.ApplyZDRCollision();
 
-            if (forceNav)
-                forceNav = !NavNearestWaypointGraph();
+            if (forceNav && !(forceNav = !(forceNavGraph == null ? NavNearestWaypointGraph() : NavWaypointGraph(forceNavGraph))) && forceNavFinishAction != null)
+                forceNavFinishAction.Invoke();
 
             var dmg = ReceiveProjectiles();
             if (dmg != null) {
@@ -79,11 +82,20 @@ namespace RaymapGame.Rayman2.Persos {
                 velY = 0;
             }
 
+            if (anim.IsSet(Anim.HelicEnable) || anim.IsSet(Anim.HelicIdle))
+                SFX("Rayman2/Rayman/helic").Play();
+            else SFX("Rayman2/Rayman/helic").Stop();
+
+            if (beam != null && rule != "Swinging")
+                Destroy(beam.gameObject);
+
             // World collision triggers
             if (col.ground.DeathWarp ||
                 col.ground.LavaDeathWarp ||
-                col.ground.HurtTrigger)
+                col.ground.HurtTrigger) {
                 Despawn();
+                Damage(15);
+            }
 
             else if (col.ground.FallTrigger)
                 SetRule("Falling");
@@ -120,9 +132,9 @@ namespace RaymapGame.Rayman2.Persos {
                 case "Riding":
                     if (iJumpDown)
                         Jump(4, false, true);
-                    if (iShootDown && !lStickPress)
+                    /*if (iShootDown && !lStickPress)
                         SetRule("Charging");
-                    else if (iShootDown) {
+                    else*/ if (iShootDown) {
                         RayShoot();
                     }
                     break;
@@ -150,13 +162,19 @@ namespace RaymapGame.Rayman2.Persos {
 
                 case "Swimming":
                     if (iJumpDown && col.atWaterSurface)
-                        Jump(4, false); break;
+                        Jump(4, false);
+                    if (iShootDown)
+                        RayShoot();
+                    break;
 
                 case "Swinging":
                     if (iJumpDown) {
                         vel = apprVel;
-                        Jump(Mathf.Clamp(3 + apprVel.y * 0.35f, 3, 20), false, true);
-                    } break;
+                        Jump(Mathf.Clamp(3 + apprVel.y * 0.2f, 3, 20), false, true);
+                    }
+                    if (iShootDown)
+                        RayShoot();
+                    break;
 
                 case "Mounted":
                     if (iShootDown) {
@@ -237,7 +255,7 @@ namespace RaymapGame.Rayman2.Persos {
             selfJump = false;
             helic = false;
 
-            GetPerso<StdCam>().Orbit(pos, 6.5f, rot.eulerAngles.y + 180, 20);
+            GetPerso<StdCam>().Orbit(pos, 6.5f, rot.y + 180, 20);
 
             SetRule("Air");
             DisableForSeconds(1.8f);
@@ -255,6 +273,7 @@ namespace RaymapGame.Rayman2.Persos {
             this.slideJump = slideJump;
             jumping = true;
             helic = false;
+            SFX("Rayman2/Rayman/jump").Play();
             SetRule("Air");
 
             float am = Mathf.Sqrt((1920f / 97) * height);
@@ -281,12 +300,19 @@ namespace RaymapGame.Rayman2.Persos {
 
             if (mount is BNT_ThePrune)
                 mount.GiveImpulse(-forward * 7);
+
+            SFX("Rayman2/Rayman/shoot/Swhish5").Play(0.04f);
         }
 
-        bool forceNav;
-        public void ForceNav() {
+
+        public void ForceNav(WaypointGraph graph = null, System.Action onFinish = null) {
             forceNav = true;
+            forceNavGraph = graph;
+            forceNavFinishAction = onFinish;
         }
+        bool forceNav;
+        WaypointGraph forceNavGraph;
+        System.Action forceNavFinishAction;
 
 
         public void DetectCarriable(bool setCarryRule = true) {

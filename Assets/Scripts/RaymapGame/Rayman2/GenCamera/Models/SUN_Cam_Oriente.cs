@@ -10,8 +10,8 @@ namespace RaymapGame.Rayman2.Persos {
         public float rotY, rotX, dist, xAddDeg;
         protected override void OnStart() {
             base.OnStart();
-            rotY = -GetDsgVar<float>("Float_1") + rot.eulerAngles.y + 180;
-            rotX = GetDsgVar<float>("Float_2") + rot.eulerAngles.x;
+            rotY = -GetDsgVar<float>("Float_1") + rot.y;
+            rotX = GetDsgVar<float>("Float_2") + rot.x;
             dist = GetDsgVar<float>("Float_3");
         }
     }

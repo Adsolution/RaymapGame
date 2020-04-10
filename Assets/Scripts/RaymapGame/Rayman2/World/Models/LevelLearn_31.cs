@@ -5,6 +5,10 @@ using static RaymapGame.MusicHandler;
 
 namespace RaymapGame.Rayman2.Persos {
     public partial class LevelLearn_31 : World {
+        protected override void Events() {
+            mainActor.SpawnParticle(true, "Env/Leaves");
+        }
+
         public override void Music() {
             if (start)
                 QueueMusic(1, 0, 0);

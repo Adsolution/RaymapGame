@@ -52,11 +52,14 @@ namespace RaymapGame.Rayman2.Persos {
                 Restart();
             }
 
-            if (col.wall.Any)
+            if (col.wall.Any) {
                 Bounce3D(col.wall.hit.normal, 0.8f);
+                SFX("Rayman2/Plum/bounce").Play();
+            }
             if (col.ground.Any) {
                 Bounce3D(col.ground.hit.normal, 0.8f);
                 velY = 6.5f;
+                SFX("Rayman2/Plum/bounce").Play();
             }
 
             if (velXZ.magnitude > idealMaxSpeed)

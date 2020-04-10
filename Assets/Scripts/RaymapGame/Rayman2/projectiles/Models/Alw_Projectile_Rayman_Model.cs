@@ -13,8 +13,22 @@ namespace RaymapGame.Rayman2.Persos {
         int bounces;
         Timer t_bounce = new Timer();
 
+        void BounceFX() {
+            SFX("Rayman2/Rayman/shoot/RICOCHET").Play(0.2f);
+            SpawnParticle("RayRicochet", LumType.Yellow);
+        }
+
+        protected override void OnDeath() {
+            BounceFX();
+            SetRule("");
+            SetVisibility(false);
+            Timers("Remove").Start(0.125f, Remove);
+        }
+
         void Rule_Shot() {
             if (newRule) {
+                SFX("Rayman2/Rayman/shoot/simple").Play(0.05f);
+                SpawnParticle(true, "FistTrail1", LumType.Yellow);
                 bounces = 0;
             }
 
@@ -30,6 +44,7 @@ namespace RaymapGame.Rayman2.Persos {
 
                     Bounce3D(r.hit.normal);
                     FaceVel2D(false);
+                    BounceFX();
 
                     // Optional find homing target
                     var t = FindTarget(20, 45);
@@ -37,7 +52,7 @@ namespace RaymapGame.Rayman2.Persos {
                         vel = (t.pos - pos).normalized * vel.magnitude;
                 }
                 else
-                    Remove();
+                    Kill();
             }
 
             if (DistTo(rayman) > 40) {
@@ -47,8 +62,7 @@ namespace RaymapGame.Rayman2.Persos {
 
         protected void Rule_Fizzle() {
             if (newRule) {
-                Timer.StartNew(1, Remove);
-                anim.SetSpeed(5);
+                Timers("Remove").Start(0.35f, Remove);
                 anim.Set(1);
             }
         }

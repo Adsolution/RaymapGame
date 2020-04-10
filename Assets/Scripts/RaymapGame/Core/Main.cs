@@ -1,7 +1,6 @@
 ﻿//================================
 //  By: Adsolution
 //================================
-
 using System;
 using RaymapGame.Rayman2.Persos;
 using System.Linq;
@@ -11,6 +10,7 @@ using UnityEngine.SceneManagement;
 using OpenSpace;
 using OpenSpace.Collide;
 using RaymapGame.EditorUI;
+using System.Diagnostics;
 
 namespace RaymapGame
 {
@@ -38,10 +38,28 @@ namespace RaymapGame
         public static bool loaded;
         public static event EventHandler onLoad;
         public static bool isRom;
+        public static GameUI ui;
         void Main_onLoad(object sender, EventArgs e) { }
 
         public static string gameName = "Rayman2";
-        public static string lvlName => controller.loader.lvlName;
+        public static string lvlName => controller?.loader?.lvlName;
+
+        public static string GetArgsGameDir() {
+
+            var args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length; i++)
+                switch (args[i]) {
+                    case "--folder":
+                    case "--directory":
+                    case "-d":
+                    case "-f":
+                        return args[i + 1];
+                }
+            return "";
+        }
+
+        public static void LoadLevel(string lvl)
+            => PersoController.LoadLevel(lvl);
 
         public static PersoController SetMainActor(PersoController perso) {
             return main._mainActor = mainActor = perso;
@@ -84,8 +102,8 @@ namespace RaymapGame
             }
 #endif
 
-            if (Input.GetKeyDown(KeyCode.J))
-                SceneManager.LoadScene(0);
+            //if (Input.GetKeyDown(KeyCode.J))
+                //SceneManager.LoadScene(0);
         }
 
 
@@ -115,8 +133,11 @@ namespace RaymapGame
             if (root != null)
                 foreach (var col in root.GetComponentsInChildren<Collider>()) {
                     var comp = col.GetComponent<CollideComponent>();
+                    var so = comp?.GetComponentInParent<SuperObjectComponent>();
                     if (comp == null || (comp.type != CollideType.None && comp.type != CollideType.ZDR))
                         Destroy(col);
+                    else if (so != null && so.flagPreview.Contains("NoRayTracing"))
+                        comp.gameObject.layer = 2;
                 }
 
             // Find Waypoint graphs

@@ -12,12 +12,8 @@ namespace RaymapGame.Rayman2.Persos {
             new AnimSFX(Anim.LandRun, "Rayman2/Rayman/roll", SFXPlayer.Polyphony.Mono),
             new AnimSFX(Anim.LandRun, "Rayman2/Rayman/footsteps/grass", 40, 51),
 
-            new AnimSFX(Anim.JumpIdleStart, new SFXPlayer.Info { path = "Rayman2/Rayman/jump", volume = 0.75f }),
-            new AnimSFX(Anim.JumpRunStart, new SFXPlayer.Info { path = "Rayman2/Rayman/jump", volume = 0.75f }),
             new AnimSFX(Anim.FallRunStart, "Rayman2/Rayman/flip", SFXPlayer.Polyphony.Mono),
 
-            new AnimSFX(Anim.HelicEnable, "Rayman2/Rayman/helic", SFXPlayer.Polyphony.Loop),
-            new AnimSFX(Anim.HelicIdle, "Rayman2/Rayman/helic", SFXPlayer.Polyphony.Loop),
             new AnimSFX(Anim.HelicDisable, "Rayman2/Rayman/helicstop"),
             new AnimSFX(Anim.HelicLandIdle, "Rayman2/Rayman/helicstop"),
             new AnimSFX(Anim.HelicLandWalk, "Rayman2/Rayman/helicstop"),

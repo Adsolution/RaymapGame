@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace RaymapGame.Rayman2.Persos {
-    public enum LumType { NotSet = -1, Red = 0, Yellow, SuperBlue, Blue, Green }
+    public enum LumType { NotSet = -1, Red = 0, Yellow, SuperBlue, Blue, Green, Purple }
     /// <summary>
     /// Collectible Lums base
     /// </summary>
@@ -20,15 +20,31 @@ namespace RaymapGame.Rayman2.Persos {
         public virtual void OnCollect(PersoController collector) { }
 
         public void CollectBy(PersoController collector) {
-            SpawnParticle(collector, "LumCollect", type);
-            SetNullPos();
             switch (type) {
-                case LumType.Red: collector.Heal(20); break;
+                case LumType.Red:
+                    collector.Heal(20);
+                    break;
+
+                case LumType.Yellow:
+                    GetPerso<World>().lums++;
+                    break;
+
+                case LumType.Blue:
+                    collector.SFX("Rayman2/Lums/Yellow").Play(0.1f, 0.3f);
+                    collector.Heal(20);
+                    break;
+
                 case LumType.Green:
                     if (collector.checkpoint != null)
                         collector.checkpoint.lum.Restart();
-                    collector.checkpoint = (CHR_CheckP)creator; break;
+                    collector.checkpoint = creator as CHR_CheckP;
+                    break;
             }
+
+            SpawnParticle(collector, "LumCollect", type);
+            SetNullPos();
+            collector.SFX($"Rayman2/Lums/{type}").Play(0.1f);
+
             OnCollect(collector);
         }
 

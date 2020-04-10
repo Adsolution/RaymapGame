@@ -35,7 +35,7 @@ namespace RaymapGame {
             var p = Main.mainActor;
 
             DebugLabel("Pos", p.pos);
-            DebugLabel("Rot", p.rot.eulerAngles);
+            DebugLabel("Rot", p.rot);
             DebugLabel("Scale", p.scale);
             DebugLabel("Sector", p.sector);
 

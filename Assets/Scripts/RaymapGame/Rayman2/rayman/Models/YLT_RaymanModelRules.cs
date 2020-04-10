@@ -11,6 +11,10 @@ namespace RaymapGame.Rayman2.Persos {
 
         void Rule_Ground() {
             #region Rule
+            if (newRule) {
+                SpawnParticle(true, "Footstep");
+            }
+
             col.groundDepth = groundDepth;
             col.UpdateGroundCollision();
 
@@ -145,7 +149,7 @@ namespace RaymapGame.Rayman2.Persos {
 
 
         void Rule_Carrying() {
-            moveSpeed = 4;
+            moveSpeed = 5;
             handChannelRot = new Vector3(90, 0, 0);
             InputMovement();
             RotateToStick(4);
@@ -184,7 +188,7 @@ namespace RaymapGame.Rayman2.Persos {
 
             if (col.wall.Any) {
                 carryPerso.Kill();
-                HoldPerso(null);
+                CarryPerso(null);
                 SetRule("Air");
                 anim.Set(Anim.CarryFlyDrop);
             }
@@ -274,6 +278,13 @@ namespace RaymapGame.Rayman2.Persos {
         }
 
 
+        void Rule_Ledgegrab() {
+            pos = ledge.hit.point;
+        }
+
+
+        CollideInfo ledge;
+
         void Rule_Air()
         {
             #region Rule
@@ -296,8 +307,8 @@ namespace RaymapGame.Rayman2.Persos {
             }
             else if (col.ground.Water && velY < 0 && !col.waterIsShallow)
             {
-                //SetRule("Swimming");
-                //return;
+                SetRule("Swimming");
+                return;
             }
             else if (!t_blockHang.active && col.ceiling.HangableCeiling) {
                 SetRule("Hanging");
@@ -315,6 +326,27 @@ namespace RaymapGame.Rayman2.Persos {
                 gravity = -30;
             }
 
+
+            // Ledgegrab
+            var lh = Raycast(forward * 2 + upward * 3, -upward, 1);
+            if (lh.AnyGround) {
+                float dist = DistTo(lh);
+                CollideInfo ledge = new CollideInfo();
+                for (float d = dist; d > 0; d -= 0.05f) {
+                    var lh2 = RayCollider.Raycast(pos + d * Vec2D(pos, lh.hit.point), -upward, 2);
+                    if (!lh2.AnyGround) {
+                        ledge = lh2;
+                        break;
+                    }
+                }
+                if (ledge.AnyGround) {
+                    this.ledge = ledge;
+                    SetRule("Ledgegrab");
+                    return;
+                }
+            }
+
+
             ApplyGravity();
 
             if (helic)
@@ -323,7 +355,8 @@ namespace RaymapGame.Rayman2.Persos {
                     superHelicRev = Mathf.Lerp(superHelicRev, 42, dt * 45);
                 else superHelicRev = Mathf.Lerp(superHelicRev, 0, dt * 1);
 
-                //GetSFXLayer(Anim.YLT_RaymanModel.HelicIdle).player.asrc.pitch = 1 + superHelicRev / 300;
+                SFX("Rayman2/Rayman/helic").asrc.pitch = 1 + superHelicRev / 300;
+                anim.SetSpeed(30 + superHelicRev / 7);
 
                 SetFriction(6.5f, hasSuperHelic ? 2.6f : 7.5f);
                 velY += dt * superHelicRev;
@@ -398,10 +431,10 @@ namespace RaymapGame.Rayman2.Persos {
 
             if ((colClimb = RayCollider.Raycast(pos + colClimb.hit.normal, -colClimb.hit.normal, 3)).ClimbableWall && Mathf.Abs(colClimb.hit.normal.y) < 0.707f)
             {
-                rot = Matrix4x4.LookAt(pos, pos + colClimb.hit.normal, Vector3.up).rotation;
+                LookAt(pos - colClimb.hit.normal);
                 pos = colClimb.hit.point + colClimb.hit.normal * 0.5f;
                 if (lStick.magnitude > deadZone)
-                    pos += Matrix4x4.Rotate(rot).MultiplyVector(new Vector2(-lStick_s.x, lStick_s.y)) * 6 * dt;
+                    pos += matRot.MultiplyVector(lStick_s) * 6 * dt;
             }
 
             else if (apprVel.y > 2 && lStickAngle * Mathf.Sign(lStickAngle) < 30)
@@ -552,8 +585,14 @@ namespace RaymapGame.Rayman2.Persos {
             SetFriction(3, 7);
             moveSpeed = 7;
 
-            col.ApplyWaterCollision(ref pos, ref velY);
+            InputMovement();
+            RotateToStick(2);
+            if (iJumpHold) RotateLocalX(-75, 1.5f);
+            else if (iDuckHold) RotateLocalX(65, 1.5f);
 
+            AlignY(1.5f);
+
+            col.ApplyWaterCollision(ref pos, ref velY);
 
             #region Correct hair for above/under water
 
@@ -578,32 +617,31 @@ namespace RaymapGame.Rayman2.Persos {
             #endregion
 
 
-            if (lStick_s.magnitude > deadZone)
-            {
-                InputMovement();
-                RotateToStick(2);
+            if (lStick_s.magnitude > deadZone) {
                 anim.Set(Anim.SwimStartMove, 0);
                 if (!anim.IsSet(Anim.SwimEnter))
                     anim.SetSpeed(lStick_s.magnitude * moveSpeed * 3);
             }
-            else
-            {
+            else {
                 anim.Set(Anim.SwimStopMove, 0);
                 anim.SetSpeed(22);
             }
         }
 
 
-        Vector3 sVec, sRot;
+        Vector3 sVec;
         float sY, sX, sVel, sDist, hiSpd, dir, prevDir;
+        bool sfxDone;
+        ParticleSystem beam;
         void Rule_Swinging(PersoController grap, float dist) {
             if (newRule) {
+                sfxDone = false;
                 helic = false;
                 sDist = DistTo(grap);
                 gravity = -30;
                 sY = VecAngleY(grap.pos);
                 sX = VecAngleX(grap.pos);
-                sVel = -100 + velY * 6 + velXZ.magnitude * 5/* - (sDist - dist) * sDist * 0.2f*/;
+                sVel = -150 + velXZ.magnitude * 50 / sDist;
                 velY = 0;
             }
 
@@ -620,17 +658,35 @@ namespace RaymapGame.Rayman2.Persos {
             prevDir = dir;
             dir = Mathf.Sign(sVel);
 
-            if (dir != prevDir && Mathf.Abs(sX) < 90)
-                Timers("SwingBoost").Start(0.55f, () => sVel += dir * dt * 100, null);
+            if (!sfxDone && sX < 10 && sX > -10) {
+                SFX("Rayman2/Swing" + (dir == -1 ? "Fwd" : "Back")).Play();
+                sfxDone = true;
+            }
+
+            if (dir != prevDir) {
+                if (Mathf.Abs(sX) < 90)
+                    Timers("SwingBoost").Start(0.55f, () => sVel += dir * dt * 100, null);
+                sfxDone = false;
+            }
             if (Mathf.Abs(sVel) > 250)
                 sVel /= 1f + 1 * dt;
 
-
-            rot.eulerAngles = new Vector3(-sX, sY + 180, 0);
-
             Orbit(grap.pos, sDist = Mathf.Lerp(sDist, dist - 1, dt * 2), sY, sX - 90, 8, 8);
-
+            rot = new Vector3(sX, sY, 0);
             anim.Set(sVel < 0 ? Anim.SwingFwd : Anim.SwingBack);
+
+
+            // Beam
+            if (beam == null)
+                beam = SpawnParticle("Grappin");
+            var hand = GetChannel(2, true);
+            beam.transform.position = hand.pos;
+            beam.transform.LookAt(grap.transform);
+            var main = beam.main;
+            var main2 = beam.transform.GetChild(0).GetComponent<ParticleSystem>().main;
+            float length = Dist(hand, grap) / 100;
+            main.startLifetimeMultiplier = length;
+            main2.startLifetimeMultiplier = length;
         }
     }
 }

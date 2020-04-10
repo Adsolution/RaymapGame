@@ -29,8 +29,8 @@ namespace RaymapGame.Rayman2.Persos {
         float rvel;
         Timer t_fall = new Timer();
         void Rule_Shake() {
-            rot = Quaternion.Euler(new Vector3(Random.value * 7 * Mathf.Sin(rvel += dt * 50 * Random.value), 0, 0)
-                + startRot.eulerAngles);
+            rot = new Vector3(Random.value * 7 * Mathf.Sin(rvel += dt * 50 * Random.value), 0, 0)
+                + startRot;
 
             if (newRule)
                 t_fall.Start(3.5f, () => SetRule("Fall"), false);
@@ -41,7 +41,7 @@ namespace RaymapGame.Rayman2.Persos {
             if (newRule) fallRVel = Random.rotation;
 
             ApplyGravity();
-            rot.eulerAngles += fallRVel.eulerAngles * dt / 2;
+            rot += fallRVel.eulerAngles * dt / 2;
         }
     }
 }

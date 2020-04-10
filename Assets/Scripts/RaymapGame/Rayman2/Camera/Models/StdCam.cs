@@ -50,7 +50,7 @@ namespace RaymapGame.Rayman2.Persos {
             targ = mainActor;
 
             if (t_shake.active)
-                rot = Quaternion.Slerp(rot, rot * Random.rotation, dt * shInt * (t_shake.remaining / shTime));
+                ShakeRot(shInt * (t_shake.remaining / shTime));
 
             cam.transform.position = pos;
             cam.transform.LookAt(pos + forward, Vector3.up);
@@ -73,7 +73,7 @@ namespace RaymapGame.Rayman2.Persos {
                 SetRule("PosCam", s.pos, s.speed);
 
             else if (GenCamera.curr is SUN_Cam_AxeForce a)
-                SetRule("AxeForce", a.pos, 8);
+                SetRule("AxeForce", a.pos, a.dist, a.xAngle);
         }
 
         Vector3 cen;
@@ -162,6 +162,10 @@ namespace RaymapGame.Rayman2.Persos {
                     SetOrbitRot(targ.oAngleY, 6);
                     tY = 4;
                 }
+                else if (targ.rule == "Swimming") {
+                    SetOrbitOffset(9, 15 + WrapAngle(oAngleX, targ.rot.x), 1);
+                    tY = 1;
+                }
 
                 if (targ.rule == "Hanging")
                     xLook = Mathf.Lerp(xLook, -5, 5 * dt);
@@ -170,7 +174,7 @@ namespace RaymapGame.Rayman2.Persos {
                 else xLook = Mathf.Lerp(xLook, 8, 8 * dt);
 
 
-                if (targ.col.groundFar.AnyGround && targ.col.groundFar.hit.distance < 2.5f) {
+                if (targ.rule == "Air" && targ.col.groundFar.AnyGround && targ.col.groundFar.hit.distance < 2.5f) {
                     cen = targ.col.groundFar.hit.point;
                 }
                 else
@@ -178,7 +182,7 @@ namespace RaymapGame.Rayman2.Persos {
 
                 if (rayman.strafing) {
                     SetOrbitOffset(6.5f, 30, 50);
-                    SetOrbitRot(targ.rot.eulerAngles.y + 180, 20);
+                    SetOrbitRot(targ.rot.y, 20);
                     xLook = 13;
                 }
             }
@@ -194,7 +198,7 @@ namespace RaymapGame.Rayman2.Persos {
             oT_h = 8;
             oTarget = cen;
             LookAtY(targ.pos, 0);
-            LookAtX(targ.pos, xLook, 8);
+            LookAtX(targ.pos, -xLook, 8);
             Orbit();
 
             /*

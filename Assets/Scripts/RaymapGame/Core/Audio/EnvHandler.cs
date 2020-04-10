@@ -104,7 +104,7 @@ namespace RaymapGame
 
                 case "whale_10":
                     asrc.clip = GetAmbience("underwater");
-                    asrc.volume = 0.5f; break;
+                    asrc.volume = 0.4f; break;
 
                 case "plum_00":
                 case "astro_10":
@@ -116,7 +116,7 @@ namespace RaymapGame
                 case "helic_10":
                 case "helic_30":
                     asrc.clip = GetAmbience("lava");
-                    asrc.volume = 0.5f; break;
+                    asrc.volume = 0.3f; break;
 
                 case "boat01":
                 case "boat02":
@@ -168,6 +168,10 @@ namespace RaymapGame
                 case "learn_60":
                 case "cask_10":
                     envGroup = mixer.FindMatchingGroups("EnvCave")[0]; break;
+
+                case "whale_10":
+                    envGroup = mixer.FindMatchingGroups("EnvWater")[0]; break;
+
                     /*
                 case "Whale_00":
                 case "Astro_00":

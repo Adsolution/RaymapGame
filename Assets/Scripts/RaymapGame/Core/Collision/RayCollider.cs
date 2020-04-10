@@ -59,6 +59,18 @@ namespace RaymapGame
         public static CollideInfo Raycast(Vector3 origin, Vector3 direction, float distance, bool collideVisual = false) {
             bool hit = Physics.Raycast(origin, direction, out var newhit, distance, 1 << (collideVisual ? 8 : 9), QueryTriggerInteraction.Ignore);
             /*
+            var returnHit = new RaycastHit();
+            int casts = 0;
+            for (float dist = 0; dist < distance && casts < raycastDepth; dist += returnHit.distance, casts++) {
+                if (Physics.Raycast(casts == 0 ? origin : returnHit.point, direction, out var newhit, distance - dist, 1 << (collideVisual ? 8 : 9), QueryTriggerInteraction.Ignore)) {
+                    newhit.distance += returnHit.distance;
+                    returnHit = newhit;
+                }
+                else break;
+            }*/
+            return new CollideInfo(newhit);
+
+            /*
             RaycastHit newhit = new RaycastHit();
             int casts = 0;
             for (float dist = 0; dist < distance && casts < raycastDepth; dist += newhit.distance, casts++) {
@@ -71,7 +83,6 @@ namespace RaymapGame
                     }
                 } else break;
             }*/
-            return new CollideInfo(newhit);
         }
 
         public CollideInfo RaycastGround(CollideMaterial.CollisionFlags_R2 types = CollideMaterial.CollisionFlags_R2.All)
@@ -144,7 +155,7 @@ namespace RaymapGame
                 else {
                     pos += ground.hit.collider.transform.position - platPosPrev;
                 }
-                perso.rot *= platformPerso.deltaRot;
+                perso.rot += platformPerso.deltaRot;
                 pos -= (Matrix4x4.Rotate(Quaternion.Inverse(platRotPrev) * ground.hit.collider.transform.rotation)
                     .MultiplyPoint3x4(ground.hit.collider.transform.position - pos)
                     - (ground.hit.collider.transform.position - pos));
@@ -173,7 +184,7 @@ namespace RaymapGame
             var most = new Vector3();
             RaycastHit shortest = new RaycastHit { distance = radius };
             for (float h = bottom; h <= top; h += 0.25f)
-                for (float a = 0; a < Mathf.PI * 2; a += Mathf.PI * 2 / 16)
+                for (float a = 0; a < Mathf.PI * 2; a += Mathf.PI * 2 / 8)
                 {
                     var col = Raycast(pos + h * Vector3.up, new Vector3(Mathf.Sin(a), 0, Mathf.Cos(a)), radius);
                     if (col.AnyWall && col.hit.distance < shortest.distance)
@@ -183,7 +194,7 @@ namespace RaymapGame
                         wall = col;
                     }
                 }
-            wallPush = new Vector3(most.x, 0, most.z);
+            wallPush = new Vector3(most.x, most.y, most.z);
 
             ceilPush = new Vector3();
             ceiling = RaycastCeiling();
@@ -213,13 +224,13 @@ namespace RaymapGame
         public void ApplyWaterCollision() => ApplyWaterCollision(ref perso.pos, ref perso.velY);
         public void ApplyWaterCollision(ref Vector3 pos)
         {
-            if (water.hit.distance < 1 + waterRestOffset)
+            if (water.hit.normal != Vector3.zero && water.hit.distance < 1 + waterRestOffset)
                 pos.y = water.hit.point.y - waterRestOffset;
         }
         public void ApplyWaterCollision(ref Vector3 pos, ref float velY)
         {
             ApplyWaterCollision(ref pos);
-            if (waterAutoSurface && water.hit.distance < waterAutoSurfaceDepth)
+            if (waterAutoSurface && water.hit.normal != Vector3.zero && water.hit.distance < waterAutoSurfaceDepth)
                 velY += 4 * (controller is IInterpolate ? Time.fixedDeltaTime : Time.deltaTime);
         }
     }

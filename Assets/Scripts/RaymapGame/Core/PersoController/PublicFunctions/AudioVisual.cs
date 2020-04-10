@@ -28,7 +28,7 @@ namespace RaymapGame {
         }
 
         public AnimSFX GetSFXLayer(int anim) {
-            foreach (var s in animSfx)
+            foreach (var s in this.anim.sfx)
                 if (s.anim == anim) return s;
             return null;
         }
@@ -61,22 +61,25 @@ namespace RaymapGame {
         ParticleSystem SpawnParticle(PersoController attachTo, Vector3 pos, string name, object type = null) {
             var p = ResManager.Inst("Particles/" + name, attachTo).GetComponent<ParticleSystem>();
             p.transform.position = attachTo == null ? pos : pos;
-            var pr = p.GetComponent<ParticleSystemRenderer>();
-            pr.material = Instantiate(pr.material);
 
-            string tex = null;
-            switch (type) {
-                case LumType.Red:
-                    tex = "etincelle_rouge_ad"; break;
-                case LumType.Yellow:
-                    tex = "etincelle_doree_ad"; break;
-                case LumType.Blue:
-                case LumType.SuperBlue:
-                    tex = "etincelle_bleu_ad"; break;
-                case LumType.Green:
-                    tex = "etincelle_VERT_ad"; break;
+            foreach (var pr in p.GetComponentsInChildren<ParticleSystemRenderer>()) {
+                pr.material = Instantiate(pr.material);
+                string tex = null;
+                switch (type) {
+                    case LumType.Red:
+                        tex = "etincelle_rouge_ad"; break;
+                    case LumType.Yellow:
+                        tex = "etincelle_doree_ad"; break;
+                    case LumType.Blue:
+                    case LumType.SuperBlue:
+                        tex = "etincelle_bleu_ad"; break;
+                    case LumType.Green:
+                        tex = "etincelle_VERT_ad"; break;
+                    case LumType.Purple:
+                        tex = "etincelle_mauve_ad"; break;
+                }
+                if (tex != null) pr.material.mainTexture = ResManager.Get<Texture2D>("effets_speciaux/" + tex);
             }
-            if (tex != null) pr.material.mainTexture = ResManager.Get<Texture2D>("effets_speciaux/" + tex);
 
             if (!p.main.loop)
                 Timer.StartNew(p.main.startLifetime.constantMax + p.main.startLifetime.constantMax, () => Destroy(p.gameObject));

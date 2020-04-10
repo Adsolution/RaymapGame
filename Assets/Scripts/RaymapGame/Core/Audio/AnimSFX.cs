@@ -21,12 +21,12 @@ namespace RaymapGame
             this.frames = frames.ToList();
         }
 
-        public AnimSFX(SFXPlayer player, int anim, string sfxPath) { Init(anim, new SFXPlayer.Info(sfxPath), 2); this.player = player; }
-        public AnimSFX(int anim, string sfxPath) => Init(anim, new SFXPlayer.Info(sfxPath), 2);
-        public AnimSFX(int anim, string sfxPath, SFXPlayer.Polyphony polyphony) => Init(anim, new SFXPlayer.Info { path = sfxPath, polyphony = polyphony }, 2);
+        public AnimSFX(SFXPlayer player, int anim, string sfxPath) { Init(anim, new SFXPlayer.Info(sfxPath), 0); this.player = player; }
+        public AnimSFX(int anim, string sfxPath) => Init(anim, new SFXPlayer.Info(sfxPath), 0);
+        public AnimSFX(int anim, string sfxPath, SFXPlayer.Polyphony polyphony) => Init(anim, new SFXPlayer.Info { path = sfxPath, polyphony = polyphony }, 0);
         public AnimSFX(int anim, string sfxPath, params int[] frames) => Init(anim, new SFXPlayer.Info(sfxPath), frames);
 
-        public AnimSFX(int anim, SFXPlayer.Info sfxInfo) => Init(anim, sfxInfo, 2);
+        public AnimSFX(int anim, SFXPlayer.Info sfxInfo) => Init(anim, sfxInfo, 0);
         public AnimSFX(int anim, SFXPlayer.Info sfxInfo, params int[] frames) => Init(anim, sfxInfo, frames);
     }
 }
