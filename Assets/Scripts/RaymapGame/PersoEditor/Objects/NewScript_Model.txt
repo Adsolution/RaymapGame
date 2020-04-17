@@ -1,8 +1,9 @@
 ﻿//================================
 //  By: Author
 //================================
-~~using System.Collections.Generic;
+~using OpenSpace.Collide;
 using UnityEngine;
+using System.Linq;
 
 namespace RaymapGame.Rayman2.Persos {
     /// <summary>

@@ -149,7 +149,7 @@ namespace RaymapGame.Rayman2.Persos {
 
 
         void Rule_Carrying() {
-            moveSpeed = 5;
+            moveSpeed = 4.5f;
             handChannelRot = new Vector3(90, 0, 0);
             InputMovement();
             RotateToStick(4);
@@ -563,7 +563,7 @@ namespace RaymapGame.Rayman2.Persos {
                 return;
             }
 
-            FaceVel3D(true);
+            FaceVel(true);
         }
 
 
@@ -631,18 +631,28 @@ namespace RaymapGame.Rayman2.Persos {
 
         Vector3 sVec;
         float sY, sX, sVel, sDist, hiSpd, dir, prevDir;
-        bool sfxDone;
+        bool flipDone;
         ParticleSystem beam;
         void Rule_Swinging(PersoController grap, float dist) {
             if (newRule) {
-                sfxDone = false;
+                anim.Set(pos.y > grap.pos.y - dist ? Anim.SwingFwd : Anim.SwingFwdLoop);
+                flipDone = false;
                 helic = false;
-                sDist = DistTo(grap);
+                sDist = DistTo(grap) + 2;
                 gravity = -30;
                 sY = VecAngleY(grap.pos);
                 sX = VecAngleX(grap.pos);
                 sVel = -150 + velXZ.magnitude * 50 / sDist;
                 velY = 0;
+                Timers("Ground Detect Wait").Start(0.5f);
+            }
+            // Dumb fix for newRule not being on the first frame
+            if (velY != 0) return;
+
+
+            if (Timers("Ground Detect Wait").finished && col.ground.AnyGround) {
+                SetRule("Ground");
+                return;
             }
 
             if (apprVel.magnitude > hiSpd)
@@ -651,29 +661,39 @@ namespace RaymapGame.Rayman2.Persos {
             float sin = Mathf.Sin(sX * Mathf.Deg2Rad);
 
             sVec = (grap.pos - pos).normalized;
-            sVel += sin * dt * 100 * gravity / DistTo(grap);
-            sX += sVel * dt;
+            sVel += sin * dt * 350 * gravity / Mathf.Pow(DistTo(grap), 1.5f);
+            sX += sVel * dt * 3 / Mathf.Sqrt(DistTo(grap));
             sY += lStick_s.x * dt * 60;
 
             prevDir = dir;
             dir = Mathf.Sign(sVel);
 
-            if (!sfxDone && sX < 10 && sX > -10) {
+
+            if (!flipDone && sX < 10 && sX > -10) {
+                flipDone = true;
                 SFX("Rayman2/Swing" + (dir == -1 ? "Fwd" : "Back")).Play();
-                sfxDone = true;
+                Timers("Flip").Start(DistTo(grap) / 25, () => {
+                    anim.Set(sVel > 0 ? Anim.SwingFwd : Anim.SwingBack);
+                });
             }
 
-            if (dir != prevDir) {
-                if (Mathf.Abs(sX) < 90)
-                    Timers("SwingBoost").Start(0.55f, () => sVel += dir * dt * 100, null);
-                sfxDone = false;
+
+            // While above grap
+            if (Mathf.Abs(sX) > 100)
+                sVel /= 1f + 1 * dt;
+
+            // While below grap
+            else {
+                flipDone = false;
+                if (dir != prevDir)
+                    Timers("SwingBoost").Start(0.55f, () => sVel += dir * dt * 10000 / (dist * dist), null);
             }
+
             if (Mathf.Abs(sVel) > 250)
                 sVel /= 1f + 1 * dt;
 
             Orbit(grap.pos, sDist = Mathf.Lerp(sDist, dist - 1, dt * 2), sY, sX - 90, 8, 8);
             rot = new Vector3(sX, sY, 0);
-            anim.Set(sVel < 0 ? Anim.SwingFwd : Anim.SwingBack);
 
 
             // Beam

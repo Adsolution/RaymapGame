@@ -56,11 +56,9 @@ namespace RaymapGame.Rayman2.Persos {
             cam.transform.LookAt(pos + forward, Vector3.up);
 
 
-
-            GenCamera.curr = (GenCamera)mainActor.GetClosestPerso(typeof(GenCamera),
-                (x) => x.CheckCollisionZone(mainActor, CollideType.ZDD));
             
-            if (GenCamera.curr == null)
+            if ((GenCamera.curr = mainActor.GetClosestPerso<GenCamera>(
+                (x) => x.CheckCollisionZone(mainActor, CollideType.ZDD))) == null)
                 SetRule("Follow");
 
             else if (GenCamera.curr is SUN_Cam_Oriente o)
@@ -73,10 +71,9 @@ namespace RaymapGame.Rayman2.Persos {
                 SetRule("PosCam", s.pos, s.speed);
 
             else if (GenCamera.curr is SUN_Cam_AxeForce a)
-                SetRule("AxeForce", a.pos, a.dist, a.xAngle);
+                SetRule("AxeForce", a.pos, a.dist, a.xAngle, a.outside);
         }
 
-        Vector3 cen;
         float steepOff => 4 * -targ.apprVel.y;
 
         protected void Rule_Follow() {
@@ -114,7 +111,7 @@ namespace RaymapGame.Rayman2.Persos {
             // ---- For everyone but Rayman ---
             if (!targIsRay) {
                 tY = 20;
-                cen = targ.pos;
+                oTarget = targ.pos;
                 SetOrbitOffset(defaultDist, defaultAngleX);
             }
 
@@ -158,7 +155,7 @@ namespace RaymapGame.Rayman2.Persos {
                     tY = 1;
                 }
                 else if (targ.rule == "Swinging") {
-                    SetOrbitOffset(14, 20, 2);
+                    SetOrbitOffset((float)rayman.ruleParams[1] + 3, 0, 2);
                     SetOrbitRot(targ.oAngleY, 6);
                     tY = 4;
                 }
@@ -175,10 +172,14 @@ namespace RaymapGame.Rayman2.Persos {
 
 
                 if (targ.rule == "Air" && targ.col.groundFar.AnyGround && targ.col.groundFar.hit.distance < 2.5f) {
-                    cen = targ.col.groundFar.hit.point;
+                    oTarget = targ.col.groundFar.hit.point;
                 }
-                else
-                    cen = targ.pos;
+                else if (targ.rule == "Swinging") {
+                    oTarget = new Vector3(targ.pos.x, ((PersoController)rayman.ruleParams[0]).pos.y, targ.pos.z);
+                }
+                else {
+                    oTarget = targ.pos;
+                }
 
                 if (rayman.strafing) {
                     SetOrbitOffset(6.5f, 30, 50);
@@ -196,7 +197,6 @@ namespace RaymapGame.Rayman2.Persos {
             // Transform
             oT_v = tY;
             oT_h = 8;
-            oTarget = cen;
             LookAtY(targ.pos, 0);
             LookAtX(targ.pos, -xLook, 8);
             Orbit();

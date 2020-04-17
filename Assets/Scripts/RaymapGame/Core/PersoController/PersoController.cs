@@ -72,6 +72,7 @@ namespace RaymapGame {
         public Type projectileType;
         public float projectileVel = 25;
         public Vector3 projectileOffset = new Vector3(0, 1.2f, 1);
+        public float targetDist = 15;
 
         public bool HD = false;
 
@@ -81,9 +82,12 @@ namespace RaymapGame {
             combatEvents = new List<Action>();
 
         public virtual AnimSFX[] animSfx => new AnimSFX[0];
+
         public virtual bool isAlways => false;
+        public virtual bool onlyActiveSector => false;
         public virtual float activeRadius => 75;
         public virtual int maxAllowedNearMainActor => 1000;
+
         public virtual bool resetOnRayDeath => true;
         public virtual bool hasLinkedDeath => false;
         public virtual bool carriable => false;

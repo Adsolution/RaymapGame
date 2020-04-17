@@ -19,8 +19,9 @@ namespace RaymapGame {
         public static implicit operator Vector3(Target v) => v == null ? new Vector3() : v.pos;
 
         public static implicit operator Target(Vector3 v) => new Target(v);
-        public static implicit operator Target(CollideInfo v) => new Target(v.hit.point);
+        public static implicit operator Target(CollideInfo v) => v.hit.normal == Vector3.zero ? null : new Target(v.hit.point);
         public static implicit operator Target(PersoController v) => v == null ? null : new Target(v.pos);
         public static implicit operator Target(Channel v) => v == null ? null : new Target(v.pos);
+        public static implicit operator Target(Waypoint v) => v == null ? null : new Target(v.pos);
     }
 }

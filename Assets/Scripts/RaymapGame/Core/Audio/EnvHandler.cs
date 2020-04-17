@@ -68,7 +68,7 @@ namespace RaymapGame
                 case "whale_05":
                 case "ile_10":
                     asrc.clip = GetAmbience("beach");
-                    asrc.volume = 0.7f; break;
+                    asrc.volume = 0.325f; break;
 
                 case "ski_20":
                 case "mine_10":
@@ -195,7 +195,32 @@ namespace RaymapGame
             FadeIn(2);
         }
 
+        public void UpdatePersoEnvGroups() {
+            foreach (var p in PersoController.GetPersos(typeof(PersoController)))
+                foreach (var s in p.sfx.Values)
+                    s.asrc.outputAudioMixerGroup = envGroup;
+        }
+
         AudioClip GetAmbience(string name) => ResManager.Get<AudioClip>("Sounds/Rayman2/ambience/" + name);
+
+        bool swim;
+        AudioMixerGroup noSwimGroup;
+        void Update() {
+            if (Main.mainActor == null) return;
+
+            if (!swim && Main.mainActor.rule == "Swimming") {
+                swim = true;
+                noSwimGroup = envGroup;
+                envGroup = mixer.FindMatchingGroups("EnvWater")[0];
+                UpdatePersoEnvGroups();
+
+            }
+            else if (swim && Main.mainActor.rule != "Swimming") {
+                swim = false;
+                envGroup = noSwimGroup;
+                UpdatePersoEnvGroups();
+            }
+        }
 
 
         public void FadeIn(float seconds) { StopAllCoroutines(); StartCoroutine(cr_FadeIn(seconds)); }

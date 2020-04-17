@@ -1,18 +1,22 @@
 //================================
 //  By: Adsolution
 //================================
-using System.Linq;
+using UnityEngine;
 
 namespace RaymapGame.Rayman2.Persos {
     /// <summary>
     /// Purple Lum
     /// </summary>
     public partial class BNT_grappinable : Lums {
-        public float grabDist;
+        public float distMin;
+        public float distMax;
         public WaypointGraph flyGraph;
 
         protected override void OnStart() {
-            grabDist = GetDsgVar<float>("Float_6");
+            distMin = GetDsgVar<float>("Float_6");
+            distMax = GetDsgVar<float>("Float_7");
+            if (distMax < distMin) distMax = distMin;
+            targetDist = GetDsgVar<float>("Float_11");
 
             maxHitPoints = float.PositiveInfinity;
             HealFull();
@@ -25,7 +29,7 @@ namespace RaymapGame.Rayman2.Persos {
         protected override void OnUpdate() {
             var prj = ReceiveProjectiles();
             if (prj?.creator != null) {
-                prj.creator.SetRule("Swinging", this, 10);
+                prj.creator.SetRule("Swinging", this, 2 + Mathf.Clamp(DistTo(rayman), distMin, distMax));
             }
         }
 

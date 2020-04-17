@@ -14,19 +14,26 @@ namespace RaymapGame {
         //  Management
         //================================
         public float dt => interpolate ? Time.fixedDeltaTime : Time.deltaTime;
-        public static PersoController mainActor => Main.mainActor;
-        public bool isMainActor => this == mainActor;
-        public bool active => persoEnabled && (!(t_disable.active || (outOfSector && outOfActiveRadius && !isAlways)));
+        public bool active => persoEnabled && (!(t_disable.active ||
+            (outOfSector && outOfActiveRadius && !isAlways && (!onlyActiveSector || sector == activeSector))));
+
         public static Rayman2.Persos.YLT_RaymanModel rayman => Main.rayman;
         public static Rayman2.Persos.StdCam stdCam => GetPerso<Rayman2.Persos.StdCam>();
+        public static PersoController mainActor => Main.mainActor;
+        public bool isMainActor => this == mainActor;
 
-        public static void LoadLevel(string lvl) {
+        public static void ChangeMap(string lvl) {
             Process.Start(new ProcessStartInfo {
                 FileName = Application.dataPath.Replace("_Data", ".exe"),
                 Arguments = $"-m Rayman2PC -d \"{Main.GetArgsGameDir()}\" -l " + lvl
             });
             Application.Quit();
         }
+
+        public static void SetMainActor(PersoController perso)
+            => Main.SetMainActor(perso);
+        public void SetMainActor()
+            => SetMainActor(this);
 
         public void Restart() {
             if (!persoEnabled) return;
@@ -108,9 +115,8 @@ namespace RaymapGame {
         public bool HasDsgVar(string name) {
             if (dsgCache.ContainsKey(name)) return true;
             if (dsg?.dsgVarEntries != null)
-                for (int v = 0; v < dsg.dsgVarEntries.Length; v++)
-                    if (dsg.dsgVarEntries[v].NiceVariableName.ToLower() == name.ToLower())
-                        return true;
+                foreach (var dv in dsg.dsgVarEntries.Where((x) => x.NiceVariableName.ToLower() == name.ToLower()))
+                    return true;
             return false;
         }
         public T GetDsgVar<T>(string name) {
@@ -190,6 +196,10 @@ namespace RaymapGame {
             return r;
         }
 
+        public P GetClosestPerso<P>(float maxDist) where P : PersoController
+            => (P)GetClosestPerso(typeof(P), (p) => DistTo(p) < maxDist);
+        public P GetClosestPerso<P>(Func<PersoController, bool> condition = null) where P : PersoController
+            => (P)GetClosestPerso(typeof(P), condition);
         public PersoController GetClosestPerso(Type persoType, float maxDist)
             => GetClosestPerso(persoType, (p) => DistTo(p) < maxDist);
         public PersoController GetClosestPerso(Type persoType, Func<PersoController, bool> condition = null) {

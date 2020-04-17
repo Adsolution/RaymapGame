@@ -112,7 +112,7 @@ namespace RaymapGame {
             foreach (var t in tunes.Where((x) => x.clip == null))
                 t.clip = t.GetDownloadedClip();
 
-            if (!loop && !asrc.isPlaying && action != null) {
+            if (!asrc.isPlaying && action != null) {
                 var ac = action;
                 action = null;
                 ac.Invoke();
@@ -121,13 +121,16 @@ namespace RaymapGame {
             var world = ((Rayman2.Persos.World)PersoController.GetPerso("World"));
             if (world != null) world.Music();
 
-            if (tr && (tune == null || bar >= trBar))
+            if (tr && (tune == null || bar >= trBar || !asrc.isPlaying))
                 SetMusic(tuneIdx, section, newBar, loop, action);
 
-            if (fading) {
+            if (tune != null && fading) {
                 asrc.volume = Mathf.Clamp01(asrc.volume - Time.fixedDeltaTime / (fadeBars * tune.barLength * volume));
                 if (asrc.volume == 0) {
                     fading = false;
+                    tune = null;
+                    tuneIdx = -1;
+                    asrc.Stop();
                     if (fadeAction != null)
                         fadeAction.Invoke();
                 }
@@ -192,8 +195,7 @@ namespace RaymapGame {
                     0, 16),
                 }; break;
 
-                case "water_10":
-                    tunes = new RayTune[] {
+                case "water_10": tunes = new RayTune[] {
                     new RayTune(136, "http://download1514.mediafire.com/dkgjdnxrvqqg/3loqk8q3kvir3ei/040+-+The+Sanctuary+of+Water+and+Ice+%28Reprise+2%29.ogg",
                     0, 8),
                     new RayTune(136, "http://download1649.mediafire.com/1pf5d7mjwuqg/jt9j1yatmttajxf/039+-+The+Sanctuary+of+Water+and+Ice+%28Reprise+1%29.ogg",
@@ -216,14 +218,20 @@ namespace RaymapGame {
                     0, 16, 24), 
                 }; break;
 
-                case "whale_10":
-                    tunes = new RayTune[] {
-                    new RayTune(78, "http://download947.mediafire.com/3v1isgbi36yg/wyuinjqcjjg2ans/071+-+The+Whale+Bay+~Bubble+Trail~.ogg",
+                case "whale_00":
+                case "whale_05": tunes = new RayTune[] {
+                    new RayTune(75, "http://www.mediafire.com/file/kbnbbz0cr6veyj9/070_-_The_Whale_Bay_%257EShallow_Harbour%257E.ogg/file",
+                    0, 12),
+                    new RayTune(78, "http://www.mediafire.com/file/wyuinjqcjjg2ans/071_-_The_Whale_Bay_%257EBubble_Trail%257E.ogg/file",
+                    0, 2),
+                }; break;
+
+                case "whale_10": tunes = new RayTune[] {
+                    new RayTune(78, "http://www.mediafire.com/file/wyuinjqcjjg2ans/071_-_The_Whale_Bay_%257EBubble_Trail%257E.ogg/file",
                     0, 16, 36, 56),
                 }; break;
 
-                case "plum_10":
-                    tunes = new RayTune[] {
+                case "plum_10": tunes = new RayTune[] {
                     new RayTune(95, "https://raytunes.raymanpc.com/music/R2/079%20-%20The%20Lava%20Stream.mp3",
                     0, 12),
                     new RayTune(95, "https://raytunes.raymanpc.com/music/R2/080%20-%20The%20Lava%20Stream%20(Reprise%201).mp3",
@@ -232,34 +240,29 @@ namespace RaymapGame {
                     0, 12),
                 }; break;
 
-                case "plum_20":
-                    tunes = new RayTune[] {
+                case "plum_20": tunes = new RayTune[] {
                     new RayTune(122, "https://raytunes.raymanpc.com/music/R2/082%20-%20The%20Ancient%20Lava%20Temple.mp3",
                     0, 12, 16),
                 }; break;
 
-                case "earth_10":
-                    tunes = new RayTune[] {
+                case "earth_10": tunes = new RayTune[] {
                     new RayTune(75, "https://www.mediafire.com/file/nq2vyt710v2rmaq/Occluded_Woods-wip5.ogg/file",
                     0, 18, 20, 24, 48, 56, 72, 80, 88, 96),
                 }; break;
 
-                case "helic_10":
-                    tunes = new RayTune[] {
+                case "helic_10": tunes = new RayTune[] {
                     new RayTune(120, "http://www.mediafire.com/file/q2vg4fw28r01xvh/109_-_Hot_Air_Flight.ogg/file",
                     0, 8, 12, 20, 28),
                     new RayTune(120, "http://www.mediafire.com/file/1lma0fk342c1np5/110_-_Hot_Air_Flight_%2528Reprise%2529.ogg/file",
                     0, 9, 12),
                 }; break;
 
-                case "helic_20":
-                    tunes = new RayTune[] {
+                case "helic_20": tunes = new RayTune[] {
                     new RayTune(120, "http://www.mediafire.com/file/q2vg4fw28r01xvh/109_-_Hot_Air_Flight.ogg/file",
                     0, 8, 12, 20, 28),
                 }; break;
 
-                case "learn_40":
-                    tunes = new RayTune[] {
+                case "learn_40": tunes = new RayTune[] {
                     new RayTune(100, "https://www.mediafire.com/file/kotwq7mf4wxda4t/021_-_Pirate_Machinery.ogg/file",
                     0, 8, 16),
                     new RayTune(100, "https://www.mediafire.com/file/16h9kx1kejpl16d/022_-_Pirate_Machinery_%28Reprise%29.ogg/file",

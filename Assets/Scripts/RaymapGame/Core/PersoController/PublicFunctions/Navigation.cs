@@ -46,7 +46,7 @@ namespace RaymapGame {
                 ? Mathf.Pow(1 + -Mathf.Abs(2 * prog), 2)
                 : Mathf.Pow(1 + -Mathf.Abs(2 * -prog + 2), 2));
 
-            return DistTo(to) < 1;
+            return prog >= 1f - 0.25f / vec.magnitude;
         }
 
 

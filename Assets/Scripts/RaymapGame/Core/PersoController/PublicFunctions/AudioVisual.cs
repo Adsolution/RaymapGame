@@ -33,7 +33,7 @@ namespace RaymapGame {
             return null;
         }
 
-        Dictionary<string, SFXPlayer> sfx = new Dictionary<string, SFXPlayer>();
+        public Dictionary<string, SFXPlayer> sfx = new Dictionary<string, SFXPlayer>();
         public SFXPlayer SFX(string path) {
             if (!sfx.ContainsKey(path))
                 sfx.Add(path, SFXPlayer.CreateOn(this, new SFXPlayer.Info {

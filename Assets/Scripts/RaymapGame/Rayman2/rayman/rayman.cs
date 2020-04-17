@@ -234,7 +234,9 @@ namespace RaymapGame.Rayman2.Persos {
     SwimLookRight = 54,
     SwimLookRightToFwd = 50,
 
+            SwingBackLoop = 71,
             SwingBack = 72,
+                SwingFwdLoop = 73,
                 SwingFwd = 74,
 
                 CarryPickUp = 151,

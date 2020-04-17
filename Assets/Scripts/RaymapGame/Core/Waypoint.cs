@@ -25,15 +25,22 @@ namespace RaymapGame {
         }
 
         void Awake() {
+            pos = transform.position;
+            if (transform.childCount > 1)
+                radius = transform.GetChild(0).localScale.x / 2;
+
             all.Add(this);
+        }
+
+        void FixedUpdate() {
+            pos = transform.position;
         }
 
         void Start() {
             graph = GetComponentInParent<WaypointGraph>();
+            if (graph == null) return;
+
             index = graph.waypoints.IndexOf(this);
-            pos = transform.position;
-            if (transform.childCount > 1)
-                radius = transform.GetChild(0).localScale.x / 2;
 
             var bh = GetComponent<WayPointBehaviour>();
 

@@ -11,11 +11,12 @@ namespace RaymapGame.Rayman2.Persos {
     public partial class Alw_Projectile_Rayman_Model : projectiles {
         public override float activeRadius => 100;
         int bounces;
-        Timer t_bounce = new Timer();
+        CollideInfo r;
 
         void BounceFX() {
             SFX("Rayman2/Rayman/shoot/RICOCHET").Play(0.2f);
-            SpawnParticle("RayRicochet", LumType.Yellow);
+            var p = SpawnParticle("RayRicochet", LumType.Yellow);
+            p.transform.position = r.hit.point;
         }
 
         protected override void OnDeath() {
@@ -25,17 +26,31 @@ namespace RaymapGame.Rayman2.Persos {
             Timers("Remove").Start(0.125f, Remove);
         }
 
+        void Rule_Fizzle() {
+            if (newRule) {
+                Timers("Remove").Start(0.35f, Remove);
+                anim.Set(1);
+            }
+        }
+
         void Rule_Shot() {
             if (newRule) {
+                SFX("Rayman2/Rayman/shoot/simple").SetVolume(0.625f);
                 SFX("Rayman2/Rayman/shoot/simple").Play(0.05f);
                 SpawnParticle(true, "FistTrail1", LumType.Yellow);
                 bounces = 0;
             }
 
-            var r = Raycast(vel, 1);
-            if (r.Any && !t_bounce.active) {
-                if (++bounces < 3) {
+            if (DistTo(rayman) > 40) {
+                SetRule("Fizzle");
+                return;
+            }
 
+            r = Raycast(vel, 1);
+            if (r.Any) {
+                if (++bounces >= 3)
+                    Kill();
+                else {
                     if (r.hitPerso != null) {
                         r.hitPerso.Damage(damage);
                         Remove();
@@ -46,24 +61,10 @@ namespace RaymapGame.Rayman2.Persos {
                     FaceVel2D(false);
                     BounceFX();
 
-                    // Optional find homing target
                     var t = FindTarget(20, 45);
                     if (t != null)
-                        vel = (t.pos - pos).normalized * vel.magnitude;
+                        vel = vel.magnitude * Vec(t);
                 }
-                else
-                    Kill();
-            }
-
-            if (DistTo(rayman) > 40) {
-                SetRule("Fizzle");
-            }
-        }
-
-        protected void Rule_Fizzle() {
-            if (newRule) {
-                Timers("Remove").Start(0.35f, Remove);
-                anim.Set(1);
             }
         }
     }

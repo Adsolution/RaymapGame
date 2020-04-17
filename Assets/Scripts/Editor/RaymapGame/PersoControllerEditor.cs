@@ -17,24 +17,29 @@ namespace RaymapGame {
             GUILayout.Space(3);
         }
 
-        public void Field(string name, object value) {
+        public object Field(string name, object value) {
             GUILayout.BeginHorizontal();
             GUILayout.Label(name, GUILayout.Width(nameWidth));
-            if (value is float) 
-                EditorGUILayout.FloatField((float)value);
+            object field = null;
+            if (value is float)
+                field = EditorGUILayout.FloatField((float)value);
             else if (value is int)
-                EditorGUILayout.IntField((int)value);
+                field = EditorGUILayout.IntField((int)value);
             else if (value is bool)
-                EditorGUILayout.Toggle((bool)value);
+                field = EditorGUILayout.Toggle((bool)value);
             else if (value is Vector3)
-                    EditorGUILayout.Vector3Field("", (Vector3)value);
-            else if (value is string)
-                    GUILayout.Label((string)value, EditorStyles.boldLabel);
+                field = EditorGUILayout.Vector3Field("", (Vector3)value);
+            else if (value is Object)
+                field = EditorGUILayout.ObjectField("", (Object)value, value.GetType(), true);
+            else if (value is string) {
+                GUILayout.Label((string)value, EditorStyles.boldLabel);
+                field = value;
+            }
 
             GUILayout.EndHorizontal();
             if (value is string)
                 GUILayout.Space(3);
-
+            return field;
         }
 
         FieldInfo[] fields;
@@ -44,7 +49,7 @@ namespace RaymapGame {
             perso.transform.hideFlags = HideFlags.HideInInspector;
             var soc = perso.GetComponent<SuperObjectComponent>(); if (soc != null) soc.hideFlags = HideFlags.HideInInspector;
             var cbc = perso.GetComponent<CustomBitsComponent>(); if (cbc != null) cbc.hideFlags = HideFlags.HideInInspector;
-            perso.GetComponent<MindComponent>().hideFlags = HideFlags.HideInInspector;
+            var mnd = perso.GetComponent<MindComponent>(); if (mnd != null) mnd.hideFlags = HideFlags.HideInInspector;
             var mod = perso.GetComponent<Moddable>(); if (mod != null) mod.hideFlags = HideFlags.HideInInspector;
             var dmc = perso.GetComponent<DynamicsMechanicsComponent>(); if (dmc != null) dmc.hideFlags = HideFlags.HideInInspector;
 
@@ -58,17 +63,28 @@ namespace RaymapGame {
 
 
             Header("Transform", true);
-            Field("Position", perso.pos);
-            Field("Rotation", perso.rot);
-            Field("Scale", perso.scale3);
+            perso.pos = (Vector3)Field("Position", perso.pos);
+            perso.rot = (Vector3)Field("Rotation", perso.rot);
+            perso.scale3 = (Vector3)Field("Scale", perso.scale3);
             Field("Sector", perso.sector);
+
+
+            if (fields == null) fields = perso.persoType.GetFields().Where((x) => x.DeclaringType == perso.persoType).ToArray();
+            if (fields.Length > 0) {
+                Header($"Family Variables");
+                foreach (var f in fields)
+                    Field(f.Name, f.GetValue(perso));
+            }
 
             Header("Management");
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Rule", GUILayout.Width(nameWidth));
             var keys = perso.rules.Keys.ToArray();
-            EditorGUILayout.Popup(System.Array.IndexOf(keys, perso.rule), keys);
+            var pick = EditorGUILayout.Popup(System.Array.IndexOf(keys, perso.rule), keys);
+            if (perso.rules.ContainsKey(perso.rule))
+                perso.SetRule(keys[pick]);
+
             if (perso.ruleParams != null && perso.rules.ContainsKey(perso.rule)) {
                 var pNames = perso.rules[perso.rule].GetParameters();
                 var pVals = perso.ruleParams;
@@ -88,13 +104,7 @@ namespace RaymapGame {
             Field("Is Always", perso.isAlways);
             if (!perso.isAlways) Field("Active Radius", perso.activeRadius);
 
-
-            if (fields == null) fields = perso.persoType.GetFields().Where((x) => x.DeclaringType == perso.persoType).ToArray();
-            if (fields.Length > 0) {
-                Header($"{perso.persoType.Name} Properties");
-                foreach (var f in fields)
-                    Field(f.Name, f.GetValue(perso));
-            }
+            Field("Active", perso.active);
 
 
             Header("Collision");

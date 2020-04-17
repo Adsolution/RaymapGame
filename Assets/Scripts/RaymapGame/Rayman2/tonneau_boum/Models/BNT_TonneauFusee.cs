@@ -25,7 +25,7 @@ namespace RaymapGame.Rayman2.Persos {
             CreateExplosion(pos);
             stdCam.Shake(3, 0.5f, pos);
             if (creator == null)
-                pos = worldNullPos;
+                pos = nullPos;
             else Remove();
         }
 

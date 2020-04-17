@@ -11,6 +11,7 @@ namespace RaymapGame.Rayman2.Persos {
         public override bool resetOnRayDeath => false;
         SFXPlayer sfx;
         protected override void OnStart() {
+            SpawnParticle(true, "Env/Pluie");
             sfx = SFX("Rayman2/Ambience/rain");
             sfx.polyphony = SFXPlayer.Polyphony.Loop;
             sfx.SetSpace(SFXPlayer.Space.Global);

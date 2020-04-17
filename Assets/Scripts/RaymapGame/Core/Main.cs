@@ -58,9 +58,6 @@ namespace RaymapGame
             return "";
         }
 
-        public static void LoadLevel(string lvl)
-            => PersoController.LoadLevel(lvl);
-
         public static PersoController SetMainActor(PersoController perso) {
             return main._mainActor = mainActor = perso;
         }
@@ -82,9 +79,17 @@ namespace RaymapGame
             onLoad += Main_onLoad;
         }
 
+        Timer t_load = new Timer();
         void LateUpdate() {
-            if (!loaded && controller.LoadState == Controller.State.Finished)
-                Load();
+            if (t_load.active) return;
+
+            if (!loaded && controller.LoadState == Controller.State.Finished) {
+                controller.viewGraphs = true;
+                t_load.Start(0.4f, () => {
+                    controller.viewGraphs = false;
+                    Load();
+                });
+            }
 
             // Debug
             if (Input.GetKeyDown(KeyCode.D))
@@ -145,10 +150,20 @@ namespace RaymapGame
             foreach (Transform gr in controller.graphManager.transform.GetChild(0))
                 gr.gameObject.AddComponent<WaypointGraph>();
 
+            // Find isolate Waypoints
+            foreach (Transform w in GameObject.Find("Isolate WayPoints").transform)
+                w.gameObject.AddComponent<Waypoint>();
+
+
             var gameMode = Settings.Mode.Rayman2PC;
 #if UNITY_EDITOR
             gameMode = UnitySettings.GameMode;
 #endif
+
+            // Make sure spawnable persos are far-out
+            foreach (Transform p in GameObject.Find("Spawnable persos").transform)
+                p.transform.position = PersoController.nullPos;
+
 
             // Perso script loading for different games - applied with (Model > Family) priority
             switch (gameMode) {
@@ -222,8 +237,6 @@ namespace RaymapGame
             }
 
             // Done loading
-            controller.viewGraphs = true;
-            Timer.StartNew(0.4f, () => controller.viewGraphs = false);
             onLoad.Invoke(this, EventArgs.Empty);
             loaded = true;
         }

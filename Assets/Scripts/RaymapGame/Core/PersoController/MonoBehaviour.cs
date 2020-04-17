@@ -37,6 +37,7 @@ namespace RaymapGame {
                 persoFamily = perso.perso.nameFamily;
             }
 
+
             // Add to perso name cache
             if (!persos.ContainsKey(persoName.ToLower()))
                 persos.Add(persoName.ToLower(), this);
@@ -46,6 +47,15 @@ namespace RaymapGame {
                 getPersosCache[GetType()].Add(this);
             else if (getPersosCache.ContainsKey(GetType().BaseType))
                 getPersosCache[GetType().BaseType].Add(this);
+
+
+            // Make extra sure non-collision colliders are gone
+            foreach (var col in GetComponentsInChildren<Collider>()) {
+                var comp = col.GetComponent<CollideComponent>();
+                var so = comp?.GetComponentInParent<SuperObjectComponent>();
+                if (comp == null || (comp.type != CollideType.None && comp.type != CollideType.ZDR))
+                    Destroy(col);
+            }
 
 
             // Collect Rules
@@ -225,16 +235,15 @@ namespace RaymapGame {
                     col.ApplyWallCollision();
                 }
 
-                if (scale <= 0) scale = 0.0001f;
-                transform.localScale = scale3;
-
-                rot = WrapAngle3(Vector3.zero, rot);
-                posPrev = pos;
-                deltaPos = pos - posFrame;
-                deltaRot = rot - rotFrame;
-                apprVel = deltaPos / dt;
             }
 
+            rot = WrapAngle3(Vector3.zero, rot);
+            posPrev = pos;
+            deltaPos = pos - posFrame;
+            deltaRot = rot - rotFrame;
+            apprVel = deltaPos / dt;
+            if (scale <= 0) scale = 0.0001f;
+            transform.localScale = scale3;
 
             // If carrying another perso, attach it to the "hand channel"
             if (carryPerso != null) {
@@ -242,7 +251,7 @@ namespace RaymapGame {
                 var ch = GetChannel(handChannel, true);
                 if (ch != null) {
                     carryPerso.pos = ch.pos;
-                    carryPerso.rot = ch.rot + handChannelRot;
+                    carryPerso.rot = (Quaternion.Euler(ch.rot) * Quaternion.Euler(handChannelRot)).eulerAngles;
                 }
             }
 

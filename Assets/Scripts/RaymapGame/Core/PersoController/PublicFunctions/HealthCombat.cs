@@ -72,8 +72,8 @@ namespace RaymapGame {
         public PersoController FindTarget(Type persoType, float maxDist, float maxAngle, bool onlyZDE)
             => target = GetClosestPerso(persoType, (p) =>
                     p != creator && !p.dead && DistTo(p) < maxDist
-                    && Vector3.Angle(forward, new Vector3(p.pos.x, 0, p.pos.z)
-                        - new Vector3(pos.x, 0, pos.z)) < maxAngle
+                    && Vector3.Angle(forward, new Vector3(p.pos.x - pos.x, 0, p.pos.z - pos.z)) < maxAngle
+                    && Mathf.Abs(p.pos.y - pos.y) < DistTo(p) / 4
                     && (!onlyZDE || p.HasCollisionType(CollideType.ZDE)));
         public PersoController Shoot()
             => Shoot(projectileType, projectileVel);

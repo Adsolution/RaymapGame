@@ -38,7 +38,7 @@ namespace RaymapGame {
         public static int activeSector => Main.controller.sectorManager.sectors.IndexOf(Main.controller.sectorManager.activeSector);
         public bool outOfSector => sector != activeSector;
         public bool outOfActiveRadius => Main.mainActor == null || DistTo(mainActor) > activeRadius;
-        public Vector3 worldNullPos => new Vector3(0, -10000, 0);
+        public static Vector3 nullPos => new Vector3(0, -10000, 0);
 
         public float rndAngle => UnityEngine.Random.Range(-180, 180);
         public Vector3 rndRot => new Vector3(rndAngle, rndAngle, rndAngle);
@@ -70,14 +70,17 @@ namespace RaymapGame {
             => perso == null ? float.PositiveInfinity : DistTo(perso.pos);
         public float DistTo2D(PersoController perso)
             => perso == null ? float.PositiveInfinity : DistTo2D(perso.pos);
+        public bool IsAbove(Target target)
+            => target != null && pos.y > target.y;
 
+        public Vector3 Vec(Target to)
+            => Vec(this, to);
+        public Vector3 Vec2D(Target to)
+            => Vec2D(this, to);
         public static Vector3 Vec(Target from, Target to)
-            => (to.pos - from.pos).normalized;
-        public static Vector3 Vec2D(Target from, Target to) {
-            var vec = to.pos - from.pos;
-            vec.y = 0;
-            return vec.normalized;
-        }
+            => from == null || to == null ? Vector3.zero : (to.pos - from.pos).normalized;
+        public static Vector3 Vec2D(Target from, Target to)
+            => from == null || to == null ? Vector3.zero : new Vector3(to.pos.x - from.pos.x, 0, to.pos.z - from.pos.z).normalized;
 
         public static float VecAngleY(Target origin, Target target)
             => -90 + Mathf.Rad2Deg * -Mathf.Atan2(origin.z - target.z, origin.x - target.x);
@@ -103,7 +106,7 @@ namespace RaymapGame {
         //  Transform
         //========================================
         public void SetNullPos()
-            => pos = worldNullPos;
+            => pos = nullPos;
         public void SetRotY(float angle, float t = -1)
             => rot.y = Mathf.Lerp(rot.y, WrapAngle(rot.y, angle), tCheck(t));
         public void SetRotX(float angle, float t = -1)
@@ -124,11 +127,11 @@ namespace RaymapGame {
             => rot.x = lookAt(target, addDegrees, 0, t).x;
         public void LookAtY(Target target, float addDegrees, float t = -1)
             => rot.y = lookAt(target, 0, addDegrees, t).y;
-        public void FaceDir3D(Vector3 dir, float t = -1)
+        public void FaceDir(Vector3 dir, float t = -1)
             => LookAt(pos + dir, t);
         public void FaceDir2D(Vector3 dir, float t = -1)
             => LookAt2D(pos + dir, t);
-        public void FaceVel3D(bool apparentVel, float t = -1)
+        public void FaceVel(bool apparentVel, float t = -1)
             => LookAt(pos + (apparentVel ? apprVel : vel), t);
         public void FaceVel2D(bool apparentVel, float t = -1)
             => LookAt2D(pos + (apparentVel ? apprVel : vel), t);

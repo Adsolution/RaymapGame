@@ -115,6 +115,9 @@ namespace RaymapGame.Rayman2.Persos {
             if (GetKeyDown(KeyCode.R))
                 Despawn();
 
+            if (GetKeyDown(KeyCode.J))
+                SetRule(rule == "Swimming" ? "Air" : "Swimming");
+
             if (iStrafeDown || iStrafeHold) {
                 strafing = true;
             }

@@ -4,16 +4,11 @@ using static RaymapGame.InputEx;
 
 namespace RaymapGame.Rayman2.Persos {
     public partial class StdCam {
-        protected void Rule_AxeForce(Vector3 focus, float dist, float xAngle) {
+        protected void Rule_AxeForce(Vector3 focus, float dist, float xAngle, bool outside) {
             col.wallEnabled = false;
-            var focXZ = new Vector3(focus.x, 0, focus.z);
-            var targXZ = new Vector3(targ.pos.x, 0, targ.pos.z);
-
-            var vec = targXZ - focXZ;
-            SetOrbit(new Vector3(focus.x, targ.pos.y, focus.z), vec.magnitude + dist, -Mathf.Atan2(vec.z, vec.x) * Mathf.Rad2Deg - 90, xAngle, 3, 4);
+            Orbit(targ.center, Mathf.Clamp(dist, 9, 50), targ.VecAngleY(focus) - (outside ? 0 : 180), xAngle, 3, 6);
             LookAtY(targ.pos, 0, 8);
             LookAtX(targ.pos, -5, 2);
-            Orbit();
         }
 
         float dist_s;
@@ -36,10 +31,10 @@ namespace RaymapGame.Rayman2.Persos {
                 LookAtY(targ.center, 0);
             }
             col.wallEnabled = false;
-            this.pos = Vector3.Lerp(this.pos, pos + Vector3.up, tCheck(t));
+            this.pos = Vector3.Slerp(this.pos, pos + Vector3.up, tCheck(t));
             SetOrbitRot(rot.y);
-            LookAtX(targ.center, 0, 10);
-            LookAtY(targ.center, 0, 10);
+            LookAtX(targ.center, 0, 6);
+            LookAtY(targ.center, 0, 6);
         }
 
 

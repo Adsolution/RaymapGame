@@ -7,7 +7,6 @@ namespace RaymapGame.Rayman2.Persos {
     /// Rolling Barrel Dispenser
     /// </summary>
     public partial class ARG_Gen_Tono_Roule : Cage {
-        public override float activeRadius => 50;
         public float spawnDelay = 10;
         public float tonMoveSpeed = 1;
 

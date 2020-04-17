@@ -13,11 +13,17 @@ namespace RaymapGame.Rayman2.Persos {
         public float radius;
 
         public string GetLevelFromTable(byte UByte_5) {
-            foreach (var s in scripts["ARG_Teleport_Tableau"])
-                if (s.TranslatedScript.Contains($"UByte_5 == {UByte_5}"))
-                    foreach (var line in s.TranslatedScript.Split(new char[] { '\n', '\r', }, System.StringSplitOptions.RemoveEmptyEntries)
-                        .Where((x) => x.Contains("Proc_ChangeMap")))
-                        return line.Split('\"')[1];
+            foreach (var s in scripts["ARG_Teleport_Tableau"]) {
+                bool found = false;
+                if (s.TranslatedScript.Contains($"UByte_5 == {UByte_5}")) {
+
+                    foreach (var l in s.TranslatedScript.Split(new char[] { '\n', '\r', }, System.StringSplitOptions.RemoveEmptyEntries))
+                        if (!found && l.Contains($"UByte_5 == {UByte_5}"))
+                            found = true;
+                        else if (found && l.Contains("Proc_ChangeMap"))
+                            return l.Split('\"')[1];
+                }
+            }
             return "";
         }
 
@@ -32,8 +38,8 @@ namespace RaymapGame.Rayman2.Persos {
                 SetRule("");
 
                 if ((graph = GetDsgVar<WaypointGraph>("Graph_1")) != null)
-                    rayman.ForceNav(graph, () => LoadLevel(level));
-                else LoadLevel(level);
+                    rayman.ForceNav(graph, () => ChangeMap(level));
+                else ChangeMap(level);
             }
         }
     }

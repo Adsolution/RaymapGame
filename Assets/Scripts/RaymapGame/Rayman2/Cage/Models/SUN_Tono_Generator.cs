@@ -8,7 +8,7 @@ namespace RaymapGame.Rayman2.Persos {
     /// Keg dispenser
     /// </summary>
     public partial class SUN_Tono_Generator : Cage {
-        public override bool isAlways => true;
+        public override bool isAlways => onlyActiveSector;
         public override bool hasLinkedDeath => true;
         public BNT_TonneauFusee keg => (BNT_TonneauFusee)deathLinks[0];
 

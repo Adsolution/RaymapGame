@@ -15,12 +15,12 @@ namespace RaymapGame.Rayman2.Persos {
             if (start)
                 QueueMusic(0, 0, 0, () => SetMusic(0, 1, 0));
 
-            else if (phase1 && activeSector == 4 && mainActor.pos.y > -10)
+            else if (phase1 && rayman.rule == "Hanging")
                 QueueMusic(0, 1, 0);
-            else if (phase1 && activeSector == 4)
+            else if (phase1 && activeSector == 4 && mainActor.pos.y < -10)
                 QueueMusic(1, 0, 0);
 
-            else if (activeSector == 8)
+            else if (activeSector == 7)
                 QueueMusic(0, 2, 0);
 
             else if (activeSector == 11) {
@@ -28,7 +28,7 @@ namespace RaymapGame.Rayman2.Persos {
                 phase1 = false;
             }
 
-            else if (activeSector == 0)
+            else if (activeSector == 1)
                 QueueMusic(0, 4, 0);
 
             else if (activeSector == 9 && mainActor.pos.y < 0)

@@ -83,7 +83,7 @@ namespace RaymapGame.Rayman2.Persos {
                 if (col.wall.AnyWall) {
                     Damage(vel.magnitude * Vector3.Angle(vel, col.wall.hit.normal) / 720);
                     vel += col.wall.hit.normal * 15;
-                    FaceVel3D(false, 60);
+                    FaceVel(false, 60);
                 }
             }
 
