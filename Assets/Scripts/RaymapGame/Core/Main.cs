@@ -11,6 +11,7 @@ using OpenSpace;
 using OpenSpace.Collide;
 using RaymapGame.EditorUI;
 using System.Diagnostics;
+using Cysharp.Threading.Tasks;
 
 namespace RaymapGame
 {
@@ -35,11 +36,17 @@ namespace RaymapGame
         public static Controller controller;
         public static AudioSource music;
         public static bool showMainActorDebug;
-        public static bool loaded;
+        public static LoadState loadState;
+        public enum LoadState {
+            None,
+            Started,
+            Loaded,
+            EndMap
+        }
         public static event EventHandler onLoad;
         public static bool isRom;
         public static GameUI ui;
-        void Main_onLoad(object sender, EventArgs e) { }
+        void Main_onLoad(object sender, EventArgs e) { onLoad -= Main_onLoad; }
 
         public static string gameName = "Rayman2";
         public static string lvlName => controller?.loader?.lvlName;
@@ -71,24 +78,26 @@ namespace RaymapGame
 
         void Awake() {
             main = this;
+            persos.Clear();
+            rayman = null;
+            mainActor = null;
+            UnitySettings.IsRaymapGame = true;
             editor = FindObjectOfType<MapEditor>();
             GetPersoScripts();
             controller = FindObjectOfType<Controller>();
             music = GetComponent<AudioSource>();
             env = gameObject.AddComponent<EnvHandler>();
             onLoad += Main_onLoad;
+            loadState = LoadState.None;
         }
 
-        Timer t_load = new Timer();
         void LateUpdate() {
-            if (t_load.active) return;
+            if (loadState == LoadState.Started || loadState == LoadState.EndMap) return;
 
-            if (!loaded && controller.LoadState == Controller.State.Finished) {
-                controller.viewGraphs = true;
-                t_load.Start(0.4f, () => {
-                    controller.viewGraphs = false;
-                    Load();
-                });
+            if (loadState == LoadState.None && controller.LoadState == Controller.State.Finished) {
+                loadState = LoadState.Started;
+                print("Starting load");
+                _ = Load();
             }
 
             // Debug
@@ -117,11 +126,10 @@ namespace RaymapGame
             list.Remove(list[iterator--]);
         }
 
-        public void Load() {
+        public async UniTask Load() {
             // Set physics clock nice and high and enable the ambience/SFX environment effects
             Time.fixedDeltaTime = 1f / 144;
             FindObjectOfType<EnvHandler>().Enable();
-
 
             // Do a few things if Empty Level is ticked
             if (emptyLevel)
@@ -145,23 +153,31 @@ namespace RaymapGame
                         comp.gameObject.layer = 2;
                 }
 
+            List<Waypoint> wps = new List<Waypoint>();
+            // Find Waypoints
+            if (controller.graphManager.waypoints.Count > 0) {
+                foreach (var wp in controller.graphManager.waypoints) {
+                    wps.Add(wp.gameObject.AddComponent<Waypoint>());
+                }
+            }
             // Find Waypoint graphs
-            if (controller.graphManager.transform.childCount > 0)
-            foreach (Transform gr in controller.graphManager.transform.GetChild(0))
-                gr.gameObject.AddComponent<WaypointGraph>();
-
-            // Find isolate Waypoints
-            foreach (Transform w in GameObject.Find("Isolate WayPoints").transform)
-                w.gameObject.AddComponent<Waypoint>();
-
+            if (controller.graphManager.graphs.Count > 0) {
+                foreach (var gr in controller.graphManager.graphs) {
+                    var wpg = gr.gameObject.AddComponent<WaypointGraph>();
+                    wpg.Init();
+                }
+            }
+            // Init Waypoints
+            foreach (var wp in wps) {
+                wp.Init();
+            }
 
             var gameMode = Settings.Mode.Rayman2PC;
 #if UNITY_EDITOR
             gameMode = UnitySettings.GameMode;
 #endif
-
             // Make sure spawnable persos are far-out
-            foreach (Transform p in GameObject.Find("Spawnable persos").transform)
+            foreach (Transform p in controller.SpawnableParent?.transform)
                 p.transform.position = PersoController.nullPos;
 
 
@@ -169,6 +185,9 @@ namespace RaymapGame
             switch (gameMode) {
                 case Settings.Mode.Rayman2PC:
                 case Settings.Mode.Rayman2DC:
+                case Settings.Mode.Rayman2IOS:
+                case Settings.Mode.Rayman2PCDemo_1999_08_18:
+                case Settings.Mode.Rayman2PCDemo_1999_09_04:
                 case Settings.Mode.Rayman3PC:
                     // The OGs work the best
                     foreach (var pb in FindObjectsOfType<PersoBehaviour>()) {
@@ -183,6 +202,8 @@ namespace RaymapGame
                     break;
 
                 case Settings.Mode.Rayman2N64:
+                case Settings.Mode.Rayman23DS:
+                case Settings.Mode.Rayman2DS:
                     isRom = true;
                     // ROM method with gameObject name splitting, since idk how names are getting there in the first place
                     foreach (var pb in FindObjectsOfType<ROMPersoBehaviour>()) {
@@ -238,7 +259,8 @@ namespace RaymapGame
 
             // Done loading
             onLoad.Invoke(this, EventArgs.Empty);
-            loaded = true;
+            loadState = LoadState.Loaded;
+            await UniTask.CompletedTask;
         }
 
 

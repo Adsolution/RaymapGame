@@ -20,11 +20,11 @@ namespace RaymapGame {
         public static RayTune tune;
         public static AudioSource asrc;
 
+        public static string serverAddress = "https://raym.app/data/raymapgame/music/";
+
         public static bool start { get; private set; } = true;
         private void Main_onLoad(object sender, EventArgs e) {
-            if (tunes == null) return;
-            foreach (var t in tunes)
-                t.clip = t.GetDownloadedClip();
+            Main.onLoad -= Main_onLoad;
         }
 
         const int RATE = 22050;
@@ -36,25 +36,31 @@ namespace RaymapGame {
             int s2 = section + 1 >= tune.sectBars.Length ? tune.clip.samples - s1 : tune.sectBars[section + 1];
             int newSmpStart = (int)(RATE * 2 * s1 * tune.barLength);
             int newSmpLength = (int)((RATE * 2 * s2 * tune.barLength) - (s1 * tune.barLength * RATE * 2));
-            
-            var newCl = AudioClip.Create($"{cl.name}_sec{section}", newSmpLength / 2, 2, RATE, false);
+            int barSmp = (int)(RATE * 2 * bar * tune.barLength);
+
+            /*var newCl = AudioClip.Create($"{cl.name}_sec{section}", newSmpLength / 2, 2, RATE, false);
             float[] data = new float[newSmpLength];
             tune.clip.GetData(data, Mathf.Clamp(newSmpStart / 2, 0, int.MaxValue));
-            newCl.SetData(data.Take(newSmpLength).ToArray(), 0);
-            
+            newCl.SetData(data, 0);*/
+            currentSmpStart = newSmpStart;
+            currentSmpLength = newSmpLength;
+            currentLoop = loop;
+
             fading = false;
             asrc.volume = volume;
-            asrc.time = 0;
-            asrc.clip = newCl;
+            //asrc.clip = newCl;
+            if(asrc.clip != cl) asrc.clip = cl;
             asrc.loop = MusicHandler.loop = loop;
             action = onFinishAction;
             MusicHandler.section = section;
             tr = false;
-            asrc.time = bar * tune.barLength;
+            asrc.timeSamples = Mathf.Clamp(newSmpStart / 2, 0, int.MaxValue) + barSmp;
             asrc.Play();
         }
 
-        public static int bar => tune == null ? 0 : Mathf.FloorToInt((asrc.time + 0.05f) / tune.barLength);
+        static int currentSmpStart, currentSmpLength;
+        static bool currentLoop;
+        public static int bar => tune == null ? 0 : Mathf.FloorToInt((((asrc.timeSamples - currentSmpStart) / (float)RATE / 2f) + 0.05f) / tune.barLength);
         public static int section = -1, tuneIdx = -1;
         static int trBar = -1;
         static int newBar = -1;
@@ -106,11 +112,18 @@ namespace RaymapGame {
                 return;
             if (tunes == null)
                 GetTunes();
-            if (!Main.loaded || tunes == null)
+            if (Main.loadState != Main.LoadState.Loaded || tunes == null)
                 return;
-            
-            foreach (var t in tunes.Where((x) => x.clip == null))
-                t.clip = t.GetDownloadedClip();
+
+            if (asrc.isPlaying) {
+                if (asrc.timeSamples >= currentSmpStart + currentSmpLength) {
+                    if (currentLoop) {
+                        asrc.timeSamples = currentSmpStart;
+                    } else {
+                        asrc.Stop();
+                    }
+                }
+            }
 
             if (!asrc.isPlaying && action != null) {
                 var ac = action;
@@ -141,7 +154,21 @@ namespace RaymapGame {
 
 
         void Awake() {
+            // Reset static values
+            start = true;
+            tunes = null;
+            tune = null;
             inst = this;
+            section = -1;
+            trBar = -1;
+            newBar = -1;
+            fading = false;
+            fadeBars = 0f;
+            fadeAction = null;
+            tr = false;
+            tuneIdx = -1;
+            loop = false;
+            // init
             asrc = gameObject.AddComponent<AudioSource>();
             asrc.loop = true;
             asrc.outputAudioMixerGroup = musicMixerGroup;
@@ -155,117 +182,117 @@ namespace RaymapGame {
         void GetTunes() {
             switch (Main.lvlName.ToLower()) {
                 case "learn_10": tunes = new RayTune[] {
-                    new RayTune(100, "http://www.mediafire.com/file/6w8rcztlvarorh1/003_-_The_Woods_of_Light_%257EFirst_Dawn%257E.ogg/file",
+                    new RayTune(100, serverAddress + "003 - The Woods of Light ~First Dawn~.wav",
                     0, 8),
-                    new RayTune(100, "http://www.mediafire.com/file/zfaobqvg5u7ky3p/004_-_The_Woods_of_Light.ogg/file",
+                    new RayTune(100, serverAddress + "004 - The Woods of Light.wav",
                     0, 4, 12, 22, 38),
-                    new RayTune(100, "http://www.mediafire.com/file/3scnkfcjpurqifm/005_-_The_Woods_of_Light_%2528Reprise%2529.ogg/file",
+                    new RayTune(100, serverAddress + "005 - The Woods of Light (Reprise).wav",
                     0, 8),
                 }; break;
 
                 case "learn_30": tunes = new RayTune[] {
-                    new RayTune(129, "http://www.mediafire.com/file/v06te9ql1aij3y7/013_-_The_Fairy_Glade.ogg/file",
+                    new RayTune(129, serverAddress + "013 - The Fairy Glade.wav",
                     0, 8, 24, 48, 72, 80, 96),
-                    new RayTune(129, "http://www.mediafire.com/file/jgpqssh77rx61z9/014_-_The_Fairy_Glade_%2528Reprise%2529.ogg/file",
+                    new RayTune(129, serverAddress + "014 - The Fairy Glade (Reprise).wav",
                     0, 16, 24),
                 }; break;
 
                 case "learn_31": tunes = new RayTune[] {
-                    new RayTune(129, "http://www.mediafire.com/file/v06te9ql1aij3y7/013_-_The_Fairy_Glade.ogg/file",
+                    new RayTune(129, serverAddress + "013 - The Fairy Glade.wav",
                     0, 8, 24, 48, 72, 80, 96),
-                    new RayTune(129, "http://www.mediafire.com/file/jgpqssh77rx61z9/014_-_The_Fairy_Glade_%2528Reprise%2529.ogg/file",
+                    new RayTune(129, serverAddress + "014 - The Fairy Glade (Reprise).wav",
                     0, 16, 24),
                 }; break;
 
                 case "chase_10": tunes = new RayTune[] {
-                    new RayTune(84, "http://www.mediafire.com/file/aqaefmr4r11gvu5/034_-_The_Bayou_%257EThe_Warship%257E.ogg/file",
+                    new RayTune(84, serverAddress + "034 - The Bayou ~The Warship~.wav",
                     0, 24, 32, 48),
-                    new RayTune(65, "http://www.mediafire.com/file/ukppyoolqaj4zwf/035_-_The_Bayou_%257EDark_Swamp%257E.ogg/file",
+                    new RayTune(65, serverAddress + "035 - The Bayou ~Dark Swamp~.wav",
                     0, 16, 32),
-                    new RayTune(103, "https://raytunes.raymanpc.com/music/R2/020%20-%20A%20Small%20Skirmish%20(Reprise).mp3",
+                    new RayTune(103, serverAddress + "020 - A Small Skirmish (Reprise).wav",
                     0, 16),
                 }; break;
 
                 case "chase_22": tunes = new RayTune[] {
-                    new RayTune(110, "http://www.mediafire.com/file/isgv4x9b4qawhr7/036_-_The_Bayou_%257EThe_Pirate_Base%257E.ogg/file",
+                    new RayTune(110, serverAddress + "036 - The_Bayou ~The Pirate Base~.wav",
                     0, 8, 24),
-                    new RayTune(110, "http://www.mediafire.com/file/p3tp1rz707w5kj2/037_-_The_Bayou_%257EThe_Pirate_Base%257E_%2528Reprise%2529.ogg/file",
+                    new RayTune(110, serverAddress + "037 - The_Bayou ~The Pirate Base~ (Reprise).wav",
                     0, 8, 24),
-                    new RayTune(103, "https://raytunes.raymanpc.com/music/R2/020%20-%20A%20Small%20Skirmish%20(Reprise).mp3",
+                    new RayTune(103, serverAddress + "020 - A Small Skirmish (Reprise).wav",
                     0, 16),
                 }; break;
 
                 case "water_10": tunes = new RayTune[] {
-                    new RayTune(136, "http://download1514.mediafire.com/dkgjdnxrvqqg/3loqk8q3kvir3ei/040+-+The+Sanctuary+of+Water+and+Ice+%28Reprise+2%29.ogg",
+                    new RayTune(136, serverAddress + "040 - The Sanctuary of Water and Ice (Reprise 2).wav",
                     0, 8),
-                    new RayTune(136, "http://download1649.mediafire.com/1pf5d7mjwuqg/jt9j1yatmttajxf/039+-+The+Sanctuary+of+Water+and+Ice+%28Reprise+1%29.ogg",
+                    new RayTune(136, serverAddress + "039 - The Sanctuary of Water and Ice (Reprise 1).wav",
                     0, 8, 12, 28),
-                    new RayTune(136, "http://download850.mediafire.com/k5ollidh0rfg/vkrorlbd79qiry1/038+-+The+Sanctuary+of+Water+and+Ice.ogg",
+                    new RayTune(136, serverAddress + "038 - The Sanctuary of Water and Ice.wav",
                     0, 8, 12, 28),
                 }; break;
 
                 case "water_20": tunes = new RayTune[] {
-                    new RayTune(160, "https://raytunes.raymanpc.com/music/R2/042%20-%20The%20Celestial%20Slide%20(Reprise).mp3",
+                    new RayTune(160, serverAddress + "042 - The Celestial Slide (Reprise).wav",
                     0, 16, 28),
-                    new RayTune(105, "https://raytunes.raymanpc.com/music/R2/043%20-%20Guardian%20of%20the%20Mask.mp3",
+                    new RayTune(105, serverAddress + "043 - Guardian of the Mask.wav",
                     0, 16)
                 }; break;
 
                 case "plum_00": tunes = new RayTune[] {
-                    new RayTune(105, "https://raytunes.raymanpc.com/music/R2/072%20-%20Into%20the%20Sanctuary%20of%20Stone%20and%20Fire.mp3",
+                    new RayTune(105, serverAddress + "072 - Into the Sanctuary of Stone and Fire.wav",
                     0, 15),
-                    new RayTune(184, "https://raytunes.raymanpc.com/music/R2/073%20-%20Extreme%20Heat.mp3",
+                    new RayTune(184, serverAddress + "073 - Extreme Heat.wav",
                     0, 16, 24), 
                 }; break;
 
                 case "whale_00":
                 case "whale_05": tunes = new RayTune[] {
-                    new RayTune(75, "http://www.mediafire.com/file/kbnbbz0cr6veyj9/070_-_The_Whale_Bay_%257EShallow_Harbour%257E.ogg/file",
+                    new RayTune(75, serverAddress + "070 - The Whale Bay ~Shallow Harbour~.wav",
                     0, 12),
-                    new RayTune(78, "http://www.mediafire.com/file/wyuinjqcjjg2ans/071_-_The_Whale_Bay_%257EBubble_Trail%257E.ogg/file",
+                    new RayTune(78, serverAddress + "071 - The Whale Bay ~Bubble Trail~.wav",
                     0, 2),
                 }; break;
 
                 case "whale_10": tunes = new RayTune[] {
-                    new RayTune(78, "http://www.mediafire.com/file/wyuinjqcjjg2ans/071_-_The_Whale_Bay_%257EBubble_Trail%257E.ogg/file",
+                    new RayTune(78, serverAddress + "071 - The Whale Bay ~Bubble Trail~.wav",
                     0, 16, 36, 56),
                 }; break;
 
                 case "plum_10": tunes = new RayTune[] {
-                    new RayTune(95, "https://raytunes.raymanpc.com/music/R2/079%20-%20The%20Lava%20Stream.mp3",
+                    new RayTune(95, serverAddress + "079 - The Lava Stream.wav",
                     0, 12),
-                    new RayTune(95, "https://raytunes.raymanpc.com/music/R2/080%20-%20The%20Lava%20Stream%20(Reprise%201).mp3",
+                    new RayTune(95, serverAddress + "080 - The Lava Stream (Reprise 1).wav",
                     0, 12),
-                    new RayTune(95, "https://raytunes.raymanpc.com/music/R2/081%20-%20The%20Lava%20Stream%20(Reprise%202).mp3",
+                    new RayTune(95, serverAddress + "081 - The Lava Stream (Reprise 2).wav",
                     0, 12),
                 }; break;
 
                 case "plum_20": tunes = new RayTune[] {
-                    new RayTune(122, "https://raytunes.raymanpc.com/music/R2/082%20-%20The%20Ancient%20Lava%20Temple.mp3",
+                    new RayTune(122, serverAddress + "082 - The Ancient Lava Temple.wav",
                     0, 12, 16),
                 }; break;
 
                 case "earth_10": tunes = new RayTune[] {
-                    new RayTune(75, "https://www.mediafire.com/file/nq2vyt710v2rmaq/Occluded_Woods-wip5.ogg/file",
+                    new RayTune(75, serverAddress + "Occluded Woods-wip5.wav",
                     0, 18, 20, 24, 48, 56, 72, 80, 88, 96),
                 }; break;
 
                 case "helic_10": tunes = new RayTune[] {
-                    new RayTune(120, "http://www.mediafire.com/file/q2vg4fw28r01xvh/109_-_Hot_Air_Flight.ogg/file",
+                    new RayTune(120, serverAddress + "109 - Hot Air Flight.wav",
                     0, 8, 12, 20, 28),
-                    new RayTune(120, "http://www.mediafire.com/file/1lma0fk342c1np5/110_-_Hot_Air_Flight_%2528Reprise%2529.ogg/file",
+                    new RayTune(120, serverAddress + "110 - Hot Air Flight (Reprise).wav",
                     0, 9, 12),
                 }; break;
 
                 case "helic_20": tunes = new RayTune[] {
-                    new RayTune(120, "http://www.mediafire.com/file/q2vg4fw28r01xvh/109_-_Hot_Air_Flight.ogg/file",
+                    new RayTune(120, serverAddress + "109 - Hot Air Flight.wav",
                     0, 8, 12, 20, 28),
                 }; break;
 
                 case "learn_40": tunes = new RayTune[] {
-                    new RayTune(100, "https://www.mediafire.com/file/kotwq7mf4wxda4t/021_-_Pirate_Machinery.ogg/file",
+                    new RayTune(100, serverAddress + "021 - Pirate Machinery.wav",
                     0, 8, 16),
-                    new RayTune(100, "https://www.mediafire.com/file/16h9kx1kejpl16d/022_-_Pirate_Machinery_%28Reprise%29.ogg/file",
+                    new RayTune(100, serverAddress + "022 - Pirate Machinery (Reprise).wav",
                     0, 8, 16),
                 }; break;
 

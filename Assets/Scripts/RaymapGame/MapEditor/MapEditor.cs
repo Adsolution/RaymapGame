@@ -12,10 +12,11 @@ namespace RaymapGame.EditorUI {
         public PersoList persoList;
         public InputField projectileText;
 
-        void Start() => Main.onLoad += Main_onLoad;
+        void Awake() => Main.onLoad += Main_onLoad;
 
         void Main_onLoad(object sender, System.EventArgs e) {
             persoList.Load();
+            Main.onLoad -= Main_onLoad;
         }
 
         void Update() {

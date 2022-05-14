@@ -24,25 +24,29 @@ namespace RaymapGame {
             return closest;
         }
 
-        void Awake() {
+        void FixedUpdate() {
+            pos = transform.position;
+        }
+
+        public void Init() {
+
             pos = transform.position;
             if (transform.childCount > 1)
                 radius = transform.GetChild(0).localScale.x / 2;
 
             all.Add(this);
-        }
 
-        void FixedUpdate() {
-            pos = transform.position;
-        }
+            var bh = GetComponent<WayPointBehaviour>();
+            if (bh == null) return;
+            var graphs = bh.graphs;
+            if (graphs.Count == 0) {
+                return;
+            }
 
-        void Start() {
-            graph = GetComponentInParent<WaypointGraph>();
+            graph = graphs[0].GetComponent<WaypointGraph>();
             if (graph == null) return;
 
             index = graph.waypoints.IndexOf(this);
-
-            var bh = GetComponent<WayPointBehaviour>();
 
             if (index - 1 >= 0)
                 prev = graph.waypoints[index - 1];
@@ -50,8 +54,8 @@ namespace RaymapGame {
             if (index + 1 < graph.waypoints.Count)
                 next = graph.waypoints[index + 1];
 
-            if (bh.targets.Count != 0)
-                nextR2 = bh.targets[0].GetComponent<Waypoint>();
+            if (bh.Targets.Count != 0)
+                nextR2 = bh.Targets[0].GetComponent<Waypoint>();
         }
     }
 }

@@ -32,15 +32,20 @@ namespace RaymapGame {
             anim.sfx = animSfx;
 
             if (!Main.isRom) {
-                persoName = perso.perso.namePerso;
-                persoModel = perso.perso.nameModel;
-                persoFamily = perso.perso.nameFamily;
+                persoName = perso.NameInstance;
+                persoModel = perso.NameModel;
+                persoFamily = perso.NameFamily;
+            } else {
+                persoName = persoRom.NameInstance;
+                persoModel = persoRom.NameModel;
+                persoFamily = persoRom.NameFamily;
             }
 
 
             // Add to perso name cache
-            if (!persos.ContainsKey(persoName.ToLower()))
-                persos.Add(persoName.ToLower(), this);
+            /*if (!persos.ContainsKey(persoName.ToLower()))
+                persos.Add(persoName.ToLower(), this);*/
+            persos[persoName.ToLower()] = this;
 
             // Add to perso type cache
             if (getPersosCache.ContainsKey(GetType()))
@@ -76,7 +81,8 @@ namespace RaymapGame {
                 foreach (Transform bh in bhvs) {
                     var scrs = new List<ScriptComponent>();
                     foreach (Transform sc in bh) scrs.Add(sc.GetComponent<ScriptComponent>());
-                    scripts.Add(bh.name.Split('\"')[1], scrs.ToArray());
+                    var n = bh.name.Split('\"');
+                    scripts.Add((n.Length > 1 ? n[1] : n[0]), scrs.ToArray());
                 }
 
             // Position and setup
@@ -182,15 +188,17 @@ namespace RaymapGame {
         }
 
         void LogicLoop() {
+            if (Main.loadState != Main.LoadState.Loaded) return;
             if (active && updateCollision) {
                 col.UpdateGroundCollision();
                 col.UpdateWaterCollision();
             } else col.ClearAll();
 
             OnUpdateAlways();
-
+            if (Main.loadState != Main.LoadState.Loaded) return;
             if (active) {
                 OnUpdate();
+                if (Main.loadState != Main.LoadState.Loaded) return;
 
                 // Rule
                 if (rule != NO_RULE_SET) {
@@ -198,6 +206,7 @@ namespace RaymapGame {
                     newRule = rule != prevRuleIdk;
                     prevRuleIdk = rule;
                 }
+                if (Main.loadState != Main.LoadState.Loaded) return;
 
                 // Mount (Plum, Shell, etc)
                 if (hasMount) {

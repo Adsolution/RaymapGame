@@ -7,6 +7,9 @@ using UnityEngine;
 using System.Diagnostics;
 using System.Reflection;
 using System.Linq;
+using OpenSpace;
+using UnityEngine.SceneManagement;
+using RaymapGame.Rayman2;
 
 namespace RaymapGame {
     public partial class PersoController {
@@ -23,11 +26,26 @@ namespace RaymapGame {
         public bool isMainActor => this == mainActor;
 
         public static void ChangeMap(string lvl) {
-            Process.Start(new ProcessStartInfo {
+            lvl = MapNames.GetCorrectCapsMapName(lvl);
+            if (!string.IsNullOrEmpty(lvl)) {
+                // RaymapGame: reset
+                Main.loadState = Main.LoadState.EndMap;
+                Timer.timers.Clear();
+                getPersosCache.Clear();
+                getPersoCache.Clear();
+                persos.Clear();
+
+                // Raymap: change map
+                UnitySettings.MapName = lvl;
+                MapLoader.Reset();
+                SceneManager.LoadScene(0);
+            }
+
+            /*Process.Start(new ProcessStartInfo {
                 FileName = Application.dataPath.Replace("_Data", ".exe"),
                 Arguments = $"-m Rayman2PC -d \"{Main.GetArgsGameDir()}\" -l " + lvl
             });
-            Application.Quit();
+            Application.Quit();*/
         }
 
         public static void SetMainActor(PersoController perso)
@@ -149,16 +167,18 @@ namespace RaymapGame {
 
             if (getPersosCache.ContainsKey(GetType())) {
                 var list = getPersosCache[GetType()];
-                for (int p = 0; p < list.Count; p++)
-                    if (list[p].persoName == persoName) {
-                        list.Remove(list[p]); break;
-                    }
+                if (list != null) {
+                    for (int p = 0; p < list.Count; p++)
+                        if (list[p].persoName == persoName) {
+                            list.Remove(list[p]); break;
+                        }
+                }
             }
             if (getPersoCache.ContainsKey(GetType()))
-                if (getPersoCache[GetType()].persoName == persoName)
+                if (getPersoCache[GetType()]?.persoName == persoName)
                     getPersoCache.Remove(GetType());
 
-            Destroy(gameObject);
+            if(gameObject != null) Destroy(gameObject);
         }
 
         public static Type PersoTypeFromString(string s) {
@@ -166,7 +186,7 @@ namespace RaymapGame {
         }
 
 
-        public static PersoController GetPerso(string persoName) {
+		public static PersoController GetPerso(string persoName) {
             if (persoName == null) return null;
             if (persos.ContainsKey(persoName.ToLower()))
                 return persos[persoName.ToLower()];
@@ -177,10 +197,15 @@ namespace RaymapGame {
         public static P GetPerso<P>() where P : PersoController
             => (P)GetPerso(typeof(P));
         public static PersoController GetPerso(Type persoType) {
-            if (getPersoCache.ContainsKey(persoType))
-                return getPersoCache[persoType];
+            if (getPersoCache.ContainsKey(persoType)) {
+                if (getPersoCache[persoType] != null) {
+                    return getPersoCache[persoType];
+                }
+            }
             var r = (PersoController)FindObjectOfType(persoType);
-            getPersoCache.Add(persoType, r);
+            if (r != null) {
+                getPersoCache[persoType] = r;
+            }
             return r;
         }
 
@@ -192,7 +217,9 @@ namespace RaymapGame {
             if (getPersosCache.ContainsKey(persoType))
                 return getPersosCache[persoType].ToArray();
             var r = (PersoController[])FindObjectsOfType(persoType);
-            getPersosCache.Add(persoType, r.ToList());
+            if (r != null && r.Length != 0) {
+                getPersosCache.Add(persoType, r.ToList());
+            }
             return r;
         }
 
@@ -271,7 +298,7 @@ namespace RaymapGame {
                 var pb = clone.Gao.GetComponent<PersoBehaviour>();
 
                 //pull it in close
-                if (pb.isLoaded)
+                if (pb.IsLoaded)
                     clone.Gao.transform.position = pos;
 
                 cl = pb.gameObject.AddComponent(persoType) as PersoController;
